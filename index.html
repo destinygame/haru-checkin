@@ -823,13 +823,23 @@ async function sendChat(){
   msgs.scrollTop=msgs.scrollHeight;
 }
 
-// ── Claude 번역 헬퍼 ──────────────────────────────────────────────
-async function translateText(text,toLang,fromLang='ko'){
+// ── 번역 헬퍼 (MyMemory API - 무료, CORS 없음) ──────────────────────────────────────────────
+const LANG_CODES = {
+  ko:'ko', vi:'vi', zh:'zh', en:'en', mn:'mn', tl:'tl', th:'th'
+};
+async function translateText(text, toLangCode, fromLangCode='ko'){
+  if(!text || toLangCode===fromLangCode) return text;
+  const from = LANG_CODES[fromLangCode] || fromLangCode;
+  const to   = LANG_CODES[toLangCode]   || toLangCode;
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:`Translate the following text from ${fromLang} to ${toLang}. Return ONLY the translated text, nothing else:\n\n${text}`}]})});
-    const data=await res.json();
-    return data.content?.map(c=>c.text||'').join('')||text;
-  }catch{return text;}
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if(data.responseStatus===200 && data.responseData?.translatedText){
+      return data.responseData.translatedText;
+    }
+    return text;
+  }catch{ return text; }
 }
 async function analyzeImage(b64,mime){
   try{
