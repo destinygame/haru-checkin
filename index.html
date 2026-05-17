@@ -22,7 +22,7 @@ textarea { resize: none; }
 .tabbar-btn.active { color: #3AAFA9; border-bottom-color: #3AAFA9; font-weight: 800; }
 .tabbar-icon { font-size: 18px; }
 #screen-login { background: linear-gradient(160deg,#D4EDE8 0%,#EAF4F0 40%,#F7F3EE 100%); flex-direction: column; align-items: center; justify-content: center; padding: 28px; }
-#screen-login.active { display: flex; }
+#screen-register.active { display: flex; }
 .login-logo { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg,#3AAFA9,#8ECFC9); display: flex; align-items: center; justify-content: center; font-size: 42px; margin: 0 auto 18px; box-shadow: 0 12px 32px rgba(58,175,169,0.27); }
 .login-title { font-size: 26px; font-weight: 900; color: #1C2B3A; text-align: center; letter-spacing: -0.5px; }
 .login-sub { color: #8A96A3; margin-top: 8px; font-size: 14px; text-align: center; }
@@ -105,7 +105,7 @@ textarea { resize: none; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 .chat-bubble-wrap { display: flex; }
 .chat-bubble-wrap.user { justify-content: flex-end; }
-.chat-bubble { max-width: 80%; padding: 12px 16px; font-size: 14px; line-height: 1.65; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.chat-bubble { max-width: 75%; min-width: 60px; padding: 12px 16px; font-size: 14px; line-height: 1.65; box-shadow: 0 2px 8px rgba(0,0,0,0.08); word-break: keep-all; overflow-wrap: break-word; white-space: pre-wrap; }
 .chat-bubble.bot { background: #FDFAF6; color: #1C2B3A; border-radius: 18px 18px 18px 4px; }
 .chat-bubble.user { background: #3AAFA9; color: #fff; border-radius: 18px 18px 4px 18px; }
 .chat-dots { display: flex; gap: 5px; padding: 14px 16px; background: #FDFAF6; border-radius: 18px 18px 18px 4px; width: fit-content; }
@@ -254,6 +254,46 @@ textarea { resize: none; }
     </div>
     <p class="login-err" id="loginErr"></p>
     <button class="btn-primary" onclick="doLogin()" id="loginBtn">로그인</button>
+    <button onclick="showScreen('register')" style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:1.5px solid #3AAFA9;background:none;color:#3AAFA9;font-size:15px;font-weight:700;cursor:pointer;">교사 회원가입</button>
+  </div>
+</div>
+
+<!-- 교사 회원가입 -->
+<div id="screen-register" class="screen" style="background:linear-gradient(160deg,#D4EDE8 0%,#EAF4F0 40%,#F7F3EE 100%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px;">
+  <div style="text-align:center;margin-bottom:28px;">
+    <div class="login-logo">👩‍🏫</div>
+    <h1 class="login-title">교사 회원가입</h1>
+    <p class="login-sub">담당 학급 정보를 입력해주세요</p>
+  </div>
+  <div class="login-card" style="max-width:400px;">
+    <label class="form-label">지역</label>
+    <input class="form-input" id="regRegion" placeholder="예) 경상남도 창원시">
+    <label class="form-label">학교명</label>
+    <input class="form-input" id="regSchool" placeholder="예) 창원초등학교">
+    <label class="form-label">학년</label>
+    <select class="form-input" id="regGrade" style="margin-bottom:14px;">
+      <option value="1">1학년</option><option value="2">2학년</option>
+      <option value="3" selected>3학년</option><option value="4">4학년</option>
+      <option value="5">5학년</option><option value="6">6학년</option>
+    </select>
+    <label class="form-label">반</label>
+    <select class="form-input" id="regCls" style="margin-bottom:14px;">
+      ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}">${n}반</option>`).join('')}
+    </select>
+    <label class="form-label">교사 이름</label>
+    <input class="form-input" id="regName" placeholder="예) 김지수">
+    <label class="form-label">아이디</label>
+    <input class="form-input" id="regId" placeholder="예) teacher-301">
+    <label class="form-label">비밀번호</label>
+    <div class="pw-wrap">
+      <input class="form-input" id="regPw" type="password" placeholder="비밀번호 (6자 이상)">
+      <button class="pw-toggle" onclick="toggleRegPw()">👁</button>
+    </div>
+    <label class="form-label">비밀번호 확인</label>
+    <input class="form-input" id="regPwConfirm" type="password" placeholder="비밀번호 재입력">
+    <p class="login-err" id="regErr"></p>
+    <button class="btn-primary" onclick="doRegister()">회원가입</button>
+    <button onclick="showScreen('login')" style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:none;color:#8A96A3;font-size:14px;cursor:pointer;">← 로그인으로 돌아가기</button>
   </div>
 </div>
 
@@ -413,6 +453,9 @@ textarea { resize: none; }
             <option value="mn">🇲🇳 몽골어</option>
             <option value="tl">🇵🇭 필리핀어</option>
           </select>
+          <input type="text" id="newStudentId" placeholder="아이디 (예: 2026-301-01)">
+          <input type="text" id="newStudentPw" placeholder="비밀번호 (예: star1234)">
+          <p style="font-size:11px;color:#8A96A3;margin-top:-4px;">비워두면 자동 생성됩니다</p>
           <button class="btn-purple" onclick="addStudent()">학생 추가하기</button>
         </div>
       </div>
@@ -426,6 +469,9 @@ textarea { resize: none; }
             <option value="">학생 선택</option>
           </select>
           <input type="text" id="newParentName" placeholder="학부모 이름 (예: 홍길동 어머니)">
+          <input type="text" id="newParentId" placeholder="아이디 (예: parent-301-01)">
+          <input type="text" id="newParentPw" placeholder="비밀번호 (예: par1234)">
+          <p style="font-size:11px;color:#8A96A3;margin-top:-4px;">비워두면 자동 생성됩니다</p>
           <button class="btn-purple" onclick="addParent()">학부모 추가하기</button>
         </div>
       </div>
@@ -640,6 +686,57 @@ function applyLoginT(){
   document.getElementById('idLabel').textContent=t('idLabel');
   document.getElementById('pwLabel').textContent=t('pwLabel');
   document.getElementById('loginBtn').textContent=t('loginBtn');
+}
+
+function toggleRegPw(){
+  const inp=document.getElementById('regPw');
+  inp.type=inp.type==='password'?'text':'password';
+  inp.nextElementSibling.textContent=inp.type==='password'?'👁':'🙈';
+}
+
+async function doRegister(){
+  await waitFb();
+  const region=document.getElementById('regRegion').value.trim();
+  const school=document.getElementById('regSchool').value.trim();
+  const grade=parseInt(document.getElementById('regGrade').value);
+  const cls=parseInt(document.getElementById('regCls').value);
+  const name=document.getElementById('regName').value.trim();
+  const id=document.getElementById('regId').value.trim();
+  const pw=document.getElementById('regPw').value;
+  const pwConfirm=document.getElementById('regPwConfirm').value;
+  const errEl=document.getElementById('regErr');
+  errEl.style.display='none';
+
+  if(!region||!school||!name||!id||!pw){
+    errEl.textContent='모든 항목을 입력해주세요'; errEl.style.display='block'; return;
+  }
+  if(pw.length<6){
+    errEl.textContent='비밀번호는 6자 이상이어야 해요'; errEl.style.display='block'; return;
+  }
+  if(pw!==pwConfirm){
+    errEl.textContent='비밀번호가 일치하지 않아요'; errEl.style.display='block'; return;
+  }
+
+  loading(true,'계정 생성 중...');
+  try{
+    const {db,doc,getDoc,setDoc}=fb();
+    const existing=await getDoc(doc(db,'accounts',id));
+    if(existing.exists()){
+      loading(false);
+      errEl.textContent='이미 사용 중인 아이디예요'; errEl.style.display='block'; return;
+    }
+    await setDoc(doc(db,'accounts',id),{
+      name,password:pw,region,school,
+      grade,cls,
+      isTeacher:true,isParent:false,
+      createdAt:new Date().toISOString()
+    });
+    loading(false);
+    alert(`회원가입 완료!\n${region} ${school} ${grade}학년 ${cls}반\n${name} 선생님\n\nID: ${id}\n로그인 해주세요!`);
+    // 입력 초기화
+    ['regRegion','regSchool','regName','regId','regPw','regPwConfirm'].forEach(el=>document.getElementById(el).value='');
+    showScreen('login');
+  }catch(e){loading(false);errEl.textContent='오류: '+e.message;errEl.style.display='block';}
 }
 
 // ── 로그인 ──────────────────────────────────────────────
@@ -1042,15 +1139,20 @@ async function addStudent(){
   await waitFb();
   const name=document.getElementById('newStudentName').value.trim();
   const lang=document.getElementById('newStudentLang').value;
+  const customId=document.getElementById('newStudentId').value.trim();
+  const customPw=document.getElementById('newStudentPw').value.trim();
   if(!name){alert('학생 이름을 입력해주세요');return;}
   loading(true,'학생 계정 추가 중...');
   try{
-    const {db,doc,setDoc}=fb();
+    const {db,doc,getDoc,setDoc}=fb();
     const acc=curAccount;
     const today=new Date();
     const year=today.getFullYear();
-    const id=`${year}-${acc.grade}${String(acc.cls).padStart(2,'0')}-${String(Date.now()).slice(-2)}`;
-    const pw=`star${String(Date.now()).slice(-4)}`;
+    const id=customId||`${year}-${acc.grade}${String(acc.cls).padStart(2,'0')}-${String(Date.now()).slice(-2)}`;
+    const pw=customPw||`star${String(Date.now()).slice(-4)}`;
+    // 중복 아이디 확인
+    const existing=await getDoc(doc(db,'accounts',id));
+    if(existing.exists()){alert('이미 사용 중인 아이디예요. 다른 아이디를 입력해주세요.');loading(false);return;}
     await setDoc(doc(db,'accounts',id),{
       name,lang,password:pw,
       grade:acc.grade,cls:acc.cls,
@@ -1059,6 +1161,8 @@ async function addStudent(){
     });
     loading(false);
     document.getElementById('newStudentName').value='';
+    document.getElementById('newStudentId').value='';
+    document.getElementById('newStudentPw').value='';
     alert(`학생 추가 완료!\nID: ${id}\nPW: ${pw}\n학생에게 알려주세요`);
     await showTeacher();
   }catch(e){loading(false);alert('추가 실패: '+e.message);}
@@ -1068,14 +1172,19 @@ async function addParent(){
   await waitFb();
   const studentId=document.getElementById('newParentStudent').value;
   const name=document.getElementById('newParentName').value.trim();
+  const customId=document.getElementById('newParentId').value.trim();
+  const customPw=document.getElementById('newParentPw').value.trim();
   if(!studentId||!name){alert('학생과 학부모 이름을 입력해주세요');return;}
   loading(true,'학부모 계정 추가 중...');
   try{
     const {db,doc,getDoc,setDoc}=fb();
     const studentSnap=await getDoc(doc(db,'accounts',studentId));
     const student=studentSnap.data();
-    const id=`parent-${studentId}`;
-    const pw=`par${String(Date.now()).slice(-4)}`;
+    const id=customId||`parent-${studentId}`;
+    const pw=customPw||`par${String(Date.now()).slice(-4)}`;
+    // 중복 아이디 확인
+    const existing=await getDoc(doc(db,'accounts',id));
+    if(existing.exists()){alert('이미 사용 중인 아이디예요. 다른 아이디를 입력해주세요.');loading(false);return;}
     await setDoc(doc(db,'accounts',id),{
       name,lang:student.lang,password:pw,
       grade:student.grade,cls:student.cls,
@@ -1085,6 +1194,8 @@ async function addParent(){
     });
     loading(false);
     document.getElementById('newParentName').value='';
+    document.getElementById('newParentId').value='';
+    document.getElementById('newParentPw').value='';
     alert(`학부모 추가 완료!\nID: ${id}\nPW: ${pw}\n학부모에게 알려주세요`);
     await showTeacher();
   }catch(e){loading(false);alert('추가 실패: '+e.message);}
@@ -1105,13 +1216,18 @@ async function deleteAccount(id){
 function showDetailWithData(s){selStudent=s;renderDetail();showScreen('detail');}
 async function showDetail(id){
   await waitFb();
-  const {db,doc,getDoc}=fb();
-  const acc=LANGS; // dummy
+  const {db,doc,getDoc,collection,query,where,orderBy,getDocs}=fb();
   const snap=await getDoc(doc(db,'accounts',id));
   const today=new Date().toISOString().slice(0,10);
+  // 오늘 기록 기본으로 불러오기
   const recSnap=await getDoc(doc(db,'records',`${id}_${today}`));
-  selStudent={id,...snap.data(),record:recSnap.exists()?recSnap.data():null};
-  renderDetail(); showScreen('detail');
+  // 전체 기록 날짜 목록도 불러오기
+  const allRecs=await getDocs(query(collection(db,'records'),where('studentId','==',id),orderBy('date','desc')));
+  const allDates=allRecs.docs.map(d=>d.data().date);
+  selStudent={id,...snap.data(),record:recSnap.exists()?recSnap.data():null,allDates,allRecords:{}};
+  allRecs.docs.forEach(d=>{ selStudent.allRecords[d.data().date]=d.data(); });
+  selStudent.viewDate=today;
+  await renderDetail(); showScreen('detail');
 }
 function hideDetail(){showScreen('teacher');}
 function setTrans(val){
@@ -1120,7 +1236,12 @@ function setTrans(val){
   document.getElementById('transBtnOrig').className=`trans-btn ${!val?'active':''}`;
   renderDetail();
 }
-function renderDetail(){
+async function changeDetailDate(date){
+  selStudent.viewDate=date;
+  selStudent.record=selStudent.allRecords[date]||null;
+  await renderDetail();
+}
+async function renderDetail(){
   const s=selStudent,rec=s.record,tS=T[s.lang]||T.en;
   const catsKo=WORRY_CATS.ko,catsLang=WORRY_CATS[s.lang]||WORRY_CATS.en;
   const lFlag=LANGS.find(l=>l.code===s.lang)?.flag||'';
@@ -1129,15 +1250,36 @@ function renderDetail(){
   document.getElementById('detailHelpBadge').style.display=rec?.helpReq?'inline-block':'none';
   document.getElementById('transBtnKo').textContent='번역본 (한국어)';
   document.getElementById('transBtnOrig').textContent=`원문 (${langLabel})`;
+
+  // 날짜 선택기
+  const dates=s.allDates||[];
+  const datePickerHTML=dates.length>0?`
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:13px;color:#8A96A3;font-weight:700">날짜 선택</span>
+      <select onchange="changeDetailDate(this.value)" style="padding:6px 12px;border-radius:10px;border:1.5px solid #E8E4DF;font-size:13px;color:#1C2B3A;background:#FDFAF6;outline:none;">
+        ${dates.map(d=>`<option value="${d}" ${d===s.viewDate?'selected':''}>${d}</option>`).join('')}
+      </select>
+    </div>`:
+    `<div style="margin-bottom:12px;font-size:13px;color:#8A96A3">기록 날짜: ${s.viewDate||'오늘'}</div>`;
+
+  // 날짜 선택기를 transBtnOrig 다음에 추가
+  let dateEl=document.getElementById('detailDatePicker');
+  if(!dateEl){
+    dateEl=document.createElement('div');
+    dateEl.id='detailDatePicker';
+    document.querySelector('.detail-content').insertBefore(dateEl, document.getElementById('detailEmotion'));
+  }
+  dateEl.innerHTML=datePickerHTML;
+
   if(!rec){
-    document.getElementById('detailEmotion').innerHTML='<p style="color:#8A96A3;text-align:center;padding:20px">오늘 기록이 없어요</p>';
+    document.getElementById('detailEmotion').innerHTML='<p style="color:#8A96A3;text-align:center;padding:20px">이 날의 기록이 없어요</p>';
     document.getElementById('detailDay').innerHTML='';
     document.getElementById('detailWorry').style.display='none';
     return;
   }
   const emKo=T.ko.emotions[rec.emotion],emOrig=tS.emotions[rec.emotion];
   document.getElementById('detailEmotion').innerHTML=
-    `<p class="detail-section-label">오늘 감정</p>
+    `<p class="detail-section-label">감정</p>
     <div class="emotion-display">
       <span class="emotion-big">${T.ko.emotionEmoji[rec.emotion]}</span>
       <div>
@@ -1145,11 +1287,21 @@ function renderDetail(){
         <div class="emotion-name-sub">${showTrans?emOrig:emKo}</div>
       </div>
     </div>`;
-  let dayHTML='<p class="detail-section-label">하루 기록</p>';
+
+  // 번역 처리
+  let goodText=rec.good&&rec.good!=='none'?rec.good:'';
+  let detailText=rec.detail||'';
+  if(showTrans && s.lang!=='ko'){
+    // 번역본 보기: 학생 원어 → 한국어
+    if(goodText && goodText.length>2) goodText=await translateText(goodText,'ko',s.lang);
+    if(detailText) detailText=await translateText(detailText,'ko',s.lang);
+  }
+
+  let dayHTML=`<p class="detail-section-label">하루 기록</p>`;
   if(rec.locked){dayHTML+='<p class="locked-msg">🔒 학생이 비공개로 설정했어요</p>';}
   else{
-    if(rec.good&&rec.good!=='none')dayHTML+=`<div class="record-item good"><span class="record-item-label" style="color:#4CAF82">😊 좋았던 일</span><span style="font-size:22px">${rec.good}</span></div>`;
-    if(rec.hadBad&&rec.detail)dayHTML+=`<div class="record-item bad"><span class="record-item-label" style="color:#E8705A">😢 힘들었던 일</span>${rec.detail}</div>`;
+    if(rec.good&&rec.good!=='none')dayHTML+=`<div class="record-item good"><span class="record-item-label" style="color:#4CAF82">😊 좋았던 일</span><span style="font-size:${rec.good.length<=2?'22px':'15px'}">${showTrans?goodText:rec.good}</span></div>`;
+    if(rec.hadBad&&rec.detail)dayHTML+=`<div class="record-item bad"><span class="record-item-label" style="color:#E8705A">😢 힘들었던 일</span>${showTrans?detailText:rec.detail}</div>`;
     if(!rec.good&&!(rec.hadBad&&rec.detail))dayHTML+='<p style="color:#8A96A3;font-size:14px;text-align:center;padding:12px 0">작성된 내용이 없어요</p>';
   }
   document.getElementById('detailDay').innerHTML=dayHTML;
@@ -1185,20 +1337,31 @@ async function showMessage(parentId){
 }
 function hideMessage(){if(msgUnsubscribe){msgUnsubscribe();msgUnsubscribe=null;}showScreen('teacher');}
 
+// ── 날짜 표시 헬퍼 ──────────────────────────────────────────────
+function formatMsgTime(m){
+  const today = new Date().toISOString().slice(0,10);
+  if(!m.date || m.date === today){
+    return m.time || '';
+  }
+  // 다른 날짜면 날짜 + 시간
+  const d = new Date(m.date);
+  return `${d.getMonth()+1}/${d.getDate()} ${m.time||''}`;
+}
+
 function renderMsgThread(msgs,targetLang,viewer){
   const el=document.getElementById('msgThread');
   el.innerHTML=msgs.map(m=>{
     const isMe=viewer==='teacher'?m.from==='teacher':m.from==='parent';
     const mainText=isMe?m.text:(m.translatedText||m.text);
     const subText=isMe?(m.translatedText||''):m.text;
-    return `<div style="display:flex;justify-content:${isMe?'flex-end':'flex-start'};margin-bottom:12px;">
-      <div style="max-width:80%">
-        <div class="chat-bubble ${isMe?'user':'bot'}" style="${isMe?'':'background:#F0EDF9;color:#1C2B3A;border-radius:18px 18px 18px 4px'}">
+    return `<div style="display:flex;justify-content:${isMe?'flex-end':'flex-start'};margin-bottom:12px;padding:0 4px;">
+      <div style="max-width:78%;min-width:60px;">
+        <div class="chat-bubble ${isMe?'user':''}" style="${isMe?'':'background:#F0EDF9;color:#1C2B3A;border-radius:18px 18px 18px 4px;'}">
           ${mainText}
         </div>
         ${subText?`<div style="font-size:11px;color:#9B8EC4;margin-top:4px;${isMe?'text-align:right':''}">🔄 ${subText}</div>`:''}
         <div style="font-size:11px;color:#8A96A3;margin-top:2px;${isMe?'text-align:right':''}">
-          ${m.time||''}
+          ${formatMsgTime(m)}
         </div>
       </div>
     </div>`;
@@ -1218,9 +1381,10 @@ async function sendTeacherMsg(){
     const translated=await translateText(text,pa.lang,'ko');
     const now=new Date();
     const time=`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const date=now.toISOString().slice(0,10);
     await addDoc(collection(db,'messages'),{
       parentId:selParentId,from:'teacher',
-      text,translatedText:translated,time,
+      text,translatedText:translated,time,date,
       grade:curAccount.grade,cls:curAccount.cls,
       createdAt:serverTimestamp()
     });
@@ -1289,13 +1453,13 @@ async function renderParentMsgs(){
       const isMe=m.from==='parent';
       const mainText=isMe?m.text:(m.translatedText||m.text);
       const subText=isMe?(m.translatedText||''):m.text;
-      return `<div style="display:flex;justify-content:${isMe?'flex-end':'flex-start'};margin-bottom:12px;">
-        <div style="max-width:80%">
-          <div class="chat-bubble ${isMe?'user':'bot'}" style="${isMe?'':'background:#F0EDF9;color:#1C2B3A;border-radius:18px 18px 18px 4px'}">
+      return `<div style="display:flex;justify-content:${isMe?'flex-end':'flex-start'};margin-bottom:12px;padding:0 4px;">
+        <div style="max-width:78%;min-width:60px;">
+          <div class="chat-bubble ${isMe?'user':''}" style="${isMe?'':'background:#F0EDF9;color:#1C2B3A;border-radius:18px 18px 18px 4px;'}">
             ${mainText}
           </div>
           ${subText?`<div style="font-size:11px;color:#9B8EC4;margin-top:4px;${isMe?'text-align:right':''}">🔄 ${subText}</div>`:''}
-          <div style="font-size:11px;color:#8A96A3;margin-top:2px;${isMe?'text-align:right':''}">${m.time||''}</div>
+          <div style="font-size:11px;color:#8A96A3;margin-top:2px;${isMe?'text-align:right':''}">${formatMsgTime(m)}</div>
         </div>
       </div>`;
     }).join('');
@@ -1313,9 +1477,10 @@ async function sendParentMsg(){
     const translated=await translateText(text,'ko',acc.lang);
     const now=new Date();
     const time=`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const date=now.toISOString().slice(0,10);
     await addDoc(collection(db,'messages'),{
       parentId:curUserId,from:'parent',
-      text,translatedText:translated,time,
+      text,translatedText:translated,time,date,
       grade:acc.grade,cls:acc.cls,
       createdAt:serverTimestamp()
     });
