@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘 하루 어땠어?</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'Noto Sans KR', sans-serif; background: #F7F3EE; }
+button { font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+input, textarea { font-family: 'Noto Sans KR', sans-serif; }
+textarea { resize: none; }
+.screen { display: none; position: fixed; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #F7F3EE; }
+.screen.active { display: block; }
+.topbar { background: #FDFAF6; padding: 14px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 0 #E8E4DF; position: sticky; top: 0; z-index: 10; }
+.topbar-back { background: none; border: none; font-size: 20px; color: #1C2B3A; padding: 4px 8px; border-radius: 8px; }
+.topbar-title { font-weight: 800; color: #1C2B3A; font-size: 16px; flex: 1; }
+.tabbar { display: flex; background: #FDFAF6; border-bottom: 1px solid #E8E4DF; position: sticky; top: 57px; z-index: 9; }
+.tabbar-btn { flex: 1; padding: 12px 8px; border: none; background: none; font-size: 13px; color: #8A96A3; font-weight: 600; border-bottom: 2px solid transparent; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.tabbar-btn.active { color: #3AAFA9; border-bottom-color: #3AAFA9; font-weight: 800; }
+.tabbar-icon { font-size: 18px; }
+#screen-login { background: linear-gradient(160deg,#D4EDE8 0%,#EAF4F0 40%,#F7F3EE 100%); flex-direction: column; align-items: center; justify-content: center; padding: 28px; }
+#screen-login.active { display: flex; }
+#screen-register.active { display: flex; }
+.login-logo { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg,#3AAFA9,#8ECFC9); display: flex; align-items: center; justify-content: center; font-size: 42px; margin: 0 auto 18px; box-shadow: 0 12px 32px rgba(58,175,169,0.27); }
+.login-title { font-size: 26px; font-weight: 900; color: #1C2B3A; text-align: center; letter-spacing: -0.5px; }
+.login-sub { color: #8A96A3; margin-top: 8px; font-size: 14px; text-align: center; }
+.login-card { background: #FDFAF6; border-radius: 24px; padding: 32px 28px; width: 100%; max-width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.10); margin-top: 32px; }
+.login-hint { font-size: 13px; color: #8A96A3; text-align: center; margin-bottom: 24px; line-height: 1.6; }
+.form-label { font-size: 13px; font-weight: 700; color: #8A96A3; display: block; margin-bottom: 6px; }
+.form-input { width: 100%; padding: 13px 16px; border-radius: 12px; border: 1.5px solid #E8E4DF; font-size: 15px; outline: none; color: #1C2B3A; background: #F7F3EE; margin-bottom: 14px; }
+.form-input:focus { border-color: #3AAFA9; }
+.pw-wrap { position: relative; margin-bottom: 14px; }
+.pw-wrap .form-input { margin-bottom: 0; padding-right: 44px; }
+.pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 18px; color: #8A96A3; }
+.login-err { color: #E8705A; font-size: 13px; font-weight: 700; margin-bottom: 12px; display: none; }
+.btn-primary { width: 100%; padding: 15px; border-radius: 14px; border: none; background: linear-gradient(135deg,#3AAFA9,#2B8A85); color: #fff; font-size: 16px; font-weight: 800; box-shadow: 0 6px 20px rgba(58,175,169,0.27); }
+.btn-primary:hover { opacity: 0.92; }
+.btn-primary:disabled { background: #E8E4DF; color: #8A96A3; box-shadow: none; cursor: not-allowed; }
+.lang-wrap { position: absolute; top: 20px; right: 20px; }
+.lang-btn { background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.5); border-radius: 20px; padding: 6px 12px; font-size: 13px; color: #1C2B3A; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+.lang-dropdown { display: none; position: absolute; top: 40px; right: 0; background: #FDFAF6; border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); overflow: hidden; min-width: 160px; z-index: 99; }
+.lang-dropdown.open { display: block; }
+.lang-option { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 16px; border: none; background: #FDFAF6; font-size: 14px; color: #1C2B3A; border-left: 3px solid transparent; }
+.lang-option:hover { background: #E0F4F3; }
+.lang-option.selected { background: #E0F4F3; border-left-color: #3AAFA9; font-weight: 800; }
+#screen-step1 { background: #F7F3EE; padding-bottom: 100px; }
+#screen-step1.active { display: block; }
+.step-content { padding: 24px 20px; }
+.step-title { color: #1C2B3A; font-size: 21px; font-weight: 900; margin-bottom: 24px; }
+.emotion-card { padding: 16px 20px; border-radius: 16px; border: 2px solid #E8E4DF; background: #FDFAF6; display: flex; align-items: center; gap: 18px; font-size: 16px; color: #1C2B3A; margin-bottom: 10px; width: 100%; text-align: left; transition: all 0.15s; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.emotion-card .em-emoji { font-size: 42px; }
+.emotion-card .em-check { margin-left: auto; font-size: 20px; display: none; }
+.emotion-card.selected .em-check { display: block; }
+.step-progress { display: flex; gap: 6px; }
+.step-dot { width: 28px; height: 5px; border-radius: 4px; background: #E8E4DF; transition: background 0.3s; }
+.step-dot.active { background: #3AAFA9; }
+#screen-step2 { background: #F7F3EE; padding-bottom: 120px; }
+#screen-step2.active { display: block; }
+.card-block { background: #FDFAF6; border-radius: 18px; padding: 20px; margin-bottom: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.good-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 14px; }
+.good-btn { padding: 10px 4px; border-radius: 12px; border: 2px solid #E8E4DF; background: #F7F3EE; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.15s; }
+.good-btn .g-icon { font-size: 26px; }
+.good-btn .g-label { font-size: 11px; color: #8A96A3; }
+.good-btn.selected { border-color: #4CAF82; background: #E6F7EE; }
+.good-btn.selected .g-label { color: #4CAF82; font-weight: 800; }
+.bad-btns { display: flex; gap: 10px; }
+.bad-btn { flex: 1; padding: 13px; border-radius: 12px; border: 2px solid #E8E4DF; background: #F7F3EE; font-weight: 800; font-size: 15px; color: #8A96A3; transition: all 0.15s; }
+.bad-btn.yes.selected { border-color: #E8705A; background: #FDEEE9; color: #E8705A; }
+.bad-btn.no.selected { border-color: #3AAFA9; background: #E0F4F3; color: #3AAFA9; }
+.worry-expand { margin-top: 20px; display: none; }
+.worry-expand.show { display: block; }
+.worry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.worry-btn { padding: 12px 10px; border-radius: 14px; border: 2px solid #E8E4DF; background: #F7F3EE; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1C2B3A; text-align: left; transition: all 0.15s; }
+.worry-btn .w-icon { font-size: 22px; flex-shrink: 0; }
+.worry-btn.selected { border-color: #E8705A; background: #FDEEE9; color: #E8705A; font-weight: 800; }
+.form-textarea { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid #E8E4DF; font-size: 14px; outline: none; color: #1C2B3A; background: #F7F3EE; margin-top: 8px; }
+.help-box { margin-top: 14px; padding: 16px; background: rgba(245,200,66,0.09); border-radius: 14px; border: 1.5px solid #F5C842; }
+.help-title { font-size: 14px; font-weight: 800; color: #1C2B3A; margin-bottom: 4px; }
+.help-desc { font-size: 12px; color: #8A96A3; margin-bottom: 12px; }
+.help-warn { margin-top: 10px; padding: 8px 12px; background: rgba(232,146,74,0.10); border-radius: 10px; font-size: 12px; color: #E8924A; font-weight: 700; display: none; }
+.help-warn.show { display: block; }
+.toggle-row { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+.toggle-track { width: 46px; height: 26px; border-radius: 13px; background: #E8E4DF; position: relative; transition: background 0.2s; flex-shrink: 0; }
+.toggle-track.on { background: #3AAFA9; }
+.toggle-thumb { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.18); }
+.toggle-track.on .toggle-thumb { left: 23px; }
+.toggle-label { font-size: 14px; color: #1C2B3A; line-height: 1.4; }
+.lock-block { background: #FDFAF6; border-radius: 14px; padding: 14px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 14px; }
+.lock-block.disabled { opacity: 0.4; pointer-events: none; }
+.btn-row { display: flex; gap: 10px; margin-top: 8px; }
+.btn-back { flex: 1; padding: 14px; border-radius: 14px; border: 1.5px solid #3AAFA9; background: #FDFAF6; color: #3AAFA9; font-size: 15px; font-weight: 800; }
+.btn-save { flex: 2; padding: 14px; border-radius: 14px; border: none; background: linear-gradient(135deg,#3AAFA9,#2B8A85); color: #fff; font-size: 15px; font-weight: 800; box-shadow: 0 6px 20px rgba(58,175,169,0.27); }
+.btn-save:disabled { background: #E8E4DF; color: #8A96A3; box-shadow: none; cursor: not-allowed; }
+#screen-saved { flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; }
+#screen-saved.active { display: flex; }
+.saved-box-anim { font-size: 80px; margin-bottom: 20px; animation: pop 0.5s cubic-bezier(.36,1.56,.64,1); }
+.saved-title { color: #1C2B3A; font-size: 24px; font-weight: 900; margin-bottom: 10px; }
+.saved-sub { color: #8A96A3; font-size: 16px; margin-bottom: 32px; }
+.saved-emoji { font-size: 52px; margin-bottom: 32px; }
+@keyframes pop { 0%{transform:scale(0) rotate(-10deg)} 70%{transform:scale(1.15) rotate(3deg)} 100%{transform:scale(1) rotate(0)} }
+#screen-chat { background: #F7F3EE; flex-direction: column; }
+#screen-chat.active { display: flex; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.chat-bubble-wrap { display: flex; }
+.chat-bubble-wrap.user { justify-content: flex-end; }
+.chat-bubble { display: inline-block; max-width: 100%; min-width: 40px; padding: 12px 16px; font-size: 14px; line-height: 1.65; box-shadow: 0 2px 8px rgba(0,0,0,0.08); word-break: keep-all; overflow-wrap: break-word; white-space: pre-wrap; }
+.chat-bubble.bot { background: #FDFAF6; color: #1C2B3A; border-radius: 18px 18px 18px 4px; }
+.chat-bubble.user { background: #3AAFA9; color: #fff; border-radius: 18px 18px 4px 18px; }
+.chat-dots { display: flex; gap: 5px; padding: 14px 16px; background: #FDFAF6; border-radius: 18px 18px 18px 4px; width: fit-content; }
+.chat-dot { width: 8px; height: 8px; border-radius: 50%; background: #3AAFA9; }
+.chat-dot:nth-child(1){animation:bounce 1s 0s infinite}
+.chat-dot:nth-child(2){animation:bounce 1s 0.2s infinite}
+.chat-dot:nth-child(3){animation:bounce 1s 0.4s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.chat-input-bar { background: #FDFAF6; padding: 12px 16px; display: flex; gap: 10px; box-shadow: 0 -1px 0 #E8E4DF; }
+.chat-input { flex: 1; padding: 12px 16px; border-radius: 24px; border: 1.5px solid #E8E4DF; font-size: 14px; outline: none; color: #1C2B3A; background: #F7F3EE; }
+.chat-send { width: 46px; height: 46px; border-radius: 50%; border: none; background: #3AAFA9; color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+.fab { position: fixed; bottom: 24px; right: 24px; width: 54px; height: 54px; border-radius: 50%; border: none; background: linear-gradient(135deg,#F5C842,#E8924A); font-size: 22px; box-shadow: 0 6px 20px rgba(232,146,74,0.34); display: none; align-items: center; justify-content: center; z-index: 20; }
+.fab.show { display: flex; }
+#screen-teacher { background: #F7F3EE; }
+#screen-teacher.active { display: block; }
+.teacher-header { background: linear-gradient(135deg,#2B8A85,#1C2B3A); padding: 20px 20px 28px; color: #fff; }
+.teacher-header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.teacher-title { font-weight: 900; font-size: 17px; flex: 1; }
+.btn-logout { background: rgba(255,255,255,0.15); border: none; color: #fff; border-radius: 10px; padding: 6px 12px; font-size: 12px; font-weight: 700; }
+.summary-grid { display: flex; gap: 10px; }
+.summary-card { flex: 1; background: rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 8px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+.summary-icon { font-size: 20px; margin-bottom: 4px; }
+.summary-value { font-size: 22px; font-weight: 900; }
+.summary-label { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.help-alert { margin: 16px 16px 0; padding: 14px 16px; background: rgba(232,112,90,0.07); border-radius: 14px; border: 1px solid rgba(232,112,90,0.27); }
+.help-alert-title { font-weight: 900; color: #E8705A; font-size: 14px; margin-bottom: 8px; }
+.help-student-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(232,112,90,0.13); }
+.student-list { padding: 16px; }
+.student-list-title { font-weight: 900; color: #1C2B3A; font-size: 15px; margin-bottom: 12px; }
+.student-card { background: #FDFAF6; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1.5px solid transparent; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.student-card.help { border-color: #E8705A; }
+.student-avatar { width: 50px; height: 50px; border-radius: 50%; background: #E8E4DF; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+.student-info { flex: 1; min-width: 0; }
+.student-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
+.student-name { font-weight: 900; color: #1C2B3A; font-size: 15px; }
+.badge { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 10px; }
+.badge-done { background: #E6F7EE; color: #4CAF82; }
+.badge-notyet { background: #FEF7DC; color: #E8924A; }
+.badge-help { background: #FDEEE9; color: #E8705A; }
+.badge-lock { color: #9B8EC4; }
+.badge-worry { background: #FDEEE9; color: #E8705A; }
+.btn-view { padding: 8px 14px; border-radius: 10px; border: none; background: #E0F4F3; color: #3AAFA9; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+#screen-detail { background: #F7F3EE; }
+#screen-detail.active { display: block; }
+.detail-content { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.trans-toggle { display: flex; gap: 8px; }
+.trans-btn { padding: 8px 16px; border-radius: 20px; border: none; background: #E8E4DF; color: #8A96A3; font-size: 13px; font-weight: 700; }
+.trans-btn.active { background: #3AAFA9; color: #fff; }
+.detail-card { background: #FDFAF6; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.detail-section-label { font-size: 12px; color: #8A96A3; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.emotion-display { display: flex; align-items: center; gap: 14px; }
+.emotion-big { font-size: 48px; }
+.emotion-name-main { font-size: 18px; font-weight: 900; }
+.emotion-name-sub { font-size: 13px; color: #8A96A3; margin-top: 3px; }
+.record-item { padding: 12px 14px; border-radius: 12px; font-size: 14px; color: #1C2B3A; margin-bottom: 8px; }
+.record-item.good { background: #E6F7EE; border-left: 3px solid #4CAF82; }
+.record-item.bad { background: #FDEEE9; border-left: 3px solid #E8705A; }
+.record-item-label { font-weight: 800; display: block; margin-bottom: 4px; }
+.locked-msg { text-align: center; padding: 20px 0; color: #9B8EC4; font-weight: 800; }
+.worry-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.worry-tag { padding: 6px 12px; border-radius: 20px; background: #FDEEE9; color: #E8705A; font-size: 13px; font-weight: 700; }
+#screen-parent { background: #F7F3EE; }
+#screen-parent.active { display: block; }
+.parent-header { background: linear-gradient(135deg,#9B8EC4,#6A5ACD); padding: 20px 20px 28px; color: #fff; }
+.parent-header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.parent-title { font-weight: 900; font-size: 17px; flex: 1; }
+.parent-sub { font-size: 13px; opacity: 0.8; }
+.notice-section { padding: 16px; }
+.section-title { font-weight: 900; color: #1C2B3A; font-size: 15px; margin-bottom: 12px; }
+.notice-card { background: #FDFAF6; border-radius: 16px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 10px; border-left: 4px solid #9B8EC4; }
+.notice-title-text { font-weight: 800; color: #1C2B3A; font-size: 15px; margin-bottom: 6px; }
+.notice-body { font-size: 14px; color: #444; line-height: 1.7; margin-bottom: 8px; }
+.notice-date { font-size: 12px; color: #8A96A3; }
+.notice-orig-toggle { font-size: 12px; color: #9B8EC4; font-weight: 700; background: #F0EDF9; border: none; border-radius: 20px; padding: 4px 10px; margin-top: 6px; }
+.notice-translated-badge { display: inline-block; font-size: 11px; background: #E0F4F3; color: #3AAFA9; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; }
+.ocr-result { background: #F0EDF9; border-radius: 12px; padding: 14px; margin-top: 10px; border-left: 3px solid #9B8EC4; }
+.ocr-result-title { font-size: 12px; color: #9B8EC4; font-weight: 700; margin-bottom: 6px; }
+.ocr-result-text { font-size: 14px; color: #1C2B3A; line-height: 1.7; }
+.parent-row { display: flex; align-items: center; gap: 12px; background: #FDFAF6; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; border: 1.5px solid transparent; }
+.parent-row:hover { border-color: #9B8EC4; }
+.parent-avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg,#9B8EC4,#C3B1E1); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; color: #fff; font-weight: 800; }
+.parent-row-info { flex: 1; min-width: 0; }
+.parent-row-name { font-weight: 800; color: #1C2B3A; font-size: 15px; }
+.parent-row-preview { font-size: 13px; color: #8A96A3; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.unread-dot { width: 10px; height: 10px; border-radius: 50%; background: #E8705A; flex-shrink: 0; }
+#screen-message { background: #F7F3EE; flex-direction: column; }
+#screen-message.active { display: flex; }
+.notice-form { padding: 16px; }
+.notice-form textarea { width: 100%; padding: 14px; border-radius: 14px; border: 1.5px solid #E8E4DF; font-size: 14px; color: #1C2B3A; background: #FDFAF6; outline: none; line-height: 1.6; }
+.notice-form input[type=text] { width: 100%; padding: 13px 16px; border-radius: 12px; border: 1.5px solid #E8E4DF; font-size: 15px; outline: none; color: #1C2B3A; background: #FDFAF6; margin-bottom: 10px; }
+.img-upload-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px; border: 1.5px dashed #9B8EC4; background: #F0EDF9; color: #9B8EC4; font-size: 14px; font-weight: 700; margin-bottom: 10px; width: 100%; justify-content: center; }
+.img-preview-wrap { position: relative; margin-bottom: 10px; }
+.img-preview-wrap img { width: 100%; border-radius: 12px; max-height: 200px; object-fit: cover; }
+.img-remove-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.btn-purple { width: 100%; padding: 14px; border-radius: 14px; border: none; background: linear-gradient(135deg,#9B8EC4,#6A5ACD); color: #fff; font-size: 15px; font-weight: 800; box-shadow: 0 6px 20px rgba(106,90,205,0.3); margin-top: 10px; }
+.msg-original { font-size: 12px; color: #8A96A3; margin-top: 4px; display: none; font-style: italic; }
+.msg-original.show { display: block; }
+.loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.85); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px; z-index: 999; }
+.loading-overlay.show { display: flex; }
+.spin { width: 36px; height: 36px; border: 3px solid #E8E4DF; border-top-color: #3AAFA9; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.spin-sm { width: 16px; height: 16px; border: 2px solid #E8E4DF; border-top-color: #9B8EC4; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; color: #8A96A3; font-weight: 600; }
+.teacher-manage { padding: 16px; }
+.manage-card { background: #FDFAF6; border-radius: 16px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 12px; }
+.manage-title { font-weight: 800; color: #1C2B3A; font-size: 15px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.account-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #E8E4DF; }
+.account-row:last-child { border-bottom: none; }
+.account-info { flex: 1; }
+.account-name { font-weight: 700; font-size: 14px; color: #1C2B3A; }
+.account-id { font-size: 12px; color: #8A96A3; margin-top: 2px; font-family: monospace; }
+.btn-sm-red { padding: 6px 12px; border-radius: 8px; border: none; background: #FDEEE9; color: #E8705A; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.btn-sm-teal { padding: 6px 12px; border-radius: 8px; border: none; background: #E0F4F3; color: #3AAFA9; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.add-account-form { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #E8E4DF; }
+.add-account-form input { padding: 10px 14px; border-radius: 10px; border: 1.5px solid #E8E4DF; font-size: 14px; outline: none; color: #1C2B3A; background: #F7F3EE; }
+.add-account-form select { padding: 10px 14px; border-radius: 10px; border: 1.5px solid #E8E4DF; font-size: 14px; outline: none; color: #1C2B3A; background: #F7F3EE; }
+</style>
+</head>
+<body>
+
+<!-- 로딩 오버레이 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spin"></div>
+  <p class="loading-text" id="loadingText">잠깐만요...</p>
+</div>
+
+<!-- 로그인 -->
+<div id="screen-login" class="screen active">
+  <div class="lang-wrap">
+    <button class="lang-btn" onclick="toggleLang()">
+      <span id="loginLangFlag">🇰🇷</span><span id="loginLangLabel">한국어</span> ▾
+    </button>
+    <div class="lang-dropdown" id="langDropdown"></div>
+  </div>
+  <div class="login-logo">🗃️</div>
+  <h1 class="login-title" id="loginTitle">오늘 하루 어땠어?</h1>
+  <p class="login-sub" id="loginSub">매일 나의 하루를 기록해요</p>
+  <div class="login-card">
+    <p class="login-hint" id="loginHint">선생님께 받은 아이디와 비밀번호를 입력해요</p>
+    <label class="form-label" id="idLabel">아이디</label>
+    <input class="form-input" id="loginId" placeholder="예) 2025-301-01" onkeydown="if(event.key==='Enter')doLogin()">
+    <label class="form-label" id="pwLabel">비밀번호</label>
+    <div class="pw-wrap">
+      <input class="form-input" id="loginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="pw-toggle" onclick="togglePw()">👁</button>
+    </div>
+    <p class="login-err" id="loginErr"></p>
+    <button class="btn-primary" onclick="doLogin()" id="loginBtn">로그인</button>
+    <button onclick="showScreen('register')" style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:1.5px solid #3AAFA9;background:none;color:#3AAFA9;font-size:15px;font-weight:700;cursor:pointer;">교사 회원가입</button>
+  </div>
+</div>
+
+<!-- 교사 회원가입 -->
+<div id="screen-register" class="screen">
+  <div style="min-height:100vh;background:linear-gradient(160deg,#D4EDE8 0%,#EAF4F0 40%,#F7F3EE 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;">
+  <div style="text-align:center;margin-bottom:28px;">
+    <div class="login-logo">👩‍🏫</div>
+    <h1 class="login-title">교사 회원가입</h1>
+    <p class="login-sub">담당 학급 정보를 입력해주세요</p>
+  </div>
+  <div class="login-card" style="max-width:400px;">
+    <label class="form-label">지역</label>
+    <input class="form-input" id="regRegion" placeholder="예) 경상남도 창원시">
+    <label class="form-label">학교명</label>
+    <input class="form-input" id="regSchool" placeholder="예) 창원초등학교">
+    <label class="form-label">학년</label>
+    <select class="form-input" id="regGrade" style="margin-bottom:14px;">
+      <option value="1">1학년</option><option value="2">2학년</option>
+      <option value="3" selected>3학년</option><option value="4">4학년</option>
+      <option value="5">5학년</option><option value="6">6학년</option>
+    </select>
+    <label class="form-label">반</label>
+    <select class="form-input" id="regCls" style="margin-bottom:14px;">
+      <option value="1">1반</option><option value="2">2반</option><option value="3">3반</option>
+      <option value="4">4반</option><option value="5">5반</option><option value="6">6반</option>
+      <option value="7">7반</option><option value="8">8반</option><option value="9">9반</option>
+      <option value="10">10반</option>
+    </select>
+    <label class="form-label">교사 이름</label>
+    <input class="form-input" id="regName" placeholder="예) 김지수">
+    <label class="form-label">아이디</label>
+    <input class="form-input" id="regId" placeholder="예) teacher-301">
+    <label class="form-label">비밀번호</label>
+    <div class="pw-wrap">
+      <input class="form-input" id="regPw" type="password" placeholder="비밀번호 (6자 이상)">
+      <button class="pw-toggle" onclick="toggleRegPw()">👁</button>
+    </div>
+    <label class="form-label">비밀번호 확인</label>
+    <input class="form-input" id="regPwConfirm" type="password" placeholder="비밀번호 재입력">
+    <p class="login-err" id="regErr"></p>
+    <button class="btn-primary" onclick="doRegister()">회원가입</button>
+    <button onclick="showScreen('login')" style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:none;color:#8A96A3;font-size:14px;cursor:pointer;">← 로그인으로 돌아가기</button>
+  </div>
+  </div>
+</div>
+
+<!-- STEP 1 감정 -->
+<div id="screen-step1" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="doLogout()">←</button>
+    <span class="topbar-title" id="step1Name"></span>
+    <div class="step-progress">
+      <div class="step-dot active" id="dot1a"></div>
+      <div class="step-dot" id="dot1b"></div>
+    </div>
+    <button style="background:none;border:none;font-size:12px;color:#8A96A3;padding:4px 8px;" onclick="doLogout()" id="logoutBtn1">로그아웃</button>
+  </div>
+  <div class="step-content">
+    <h2 class="step-title" id="step1Title">지금 기분이 어때요?</h2>
+    <div id="emotionList"></div>
+    <button class="btn-primary" style="margin-top:28px;width:100%;" id="btnNext1" onclick="goStep2()" disabled>다음 →</button>
+  </div>
+  <button class="fab show" onclick="showChat()">💬</button>
+</div>
+
+<!-- STEP 2 -->
+<div id="screen-step2" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goStep1()">←</button>
+    <span class="topbar-title" id="step2Name"></span>
+    <div class="step-progress">
+      <div class="step-dot active"></div><div class="step-dot active"></div>
+    </div>
+  </div>
+  <div class="step-content">
+    <h2 class="step-title" id="step2Title">오늘 하루를 상자에 담아봐요</h2>
+    <div class="card-block">
+      <span style="font-size:14px;font-weight:800;color:#4CAF82;" id="goodLabel">😊 오늘 좋았던 일</span>
+      <div class="good-grid" id="goodGrid"></div>
+    </div>
+    <div class="card-block">
+      <p style="font-size:15px;font-weight:800;color:#1C2B3A;margin-bottom:14px;" id="hadBadLabel">오늘 힘든 일이 있었나요?</p>
+      <div class="bad-btns">
+        <button class="bad-btn yes" id="btnBadYes" onclick="setBad(true)"></button>
+        <button class="bad-btn no" id="btnBadNo" onclick="setBad(false)"></button>
+      </div>
+      <div class="worry-expand" id="worryExpand">
+        <p style="font-size:14px;font-weight:800;color:#1C2B3A;margin:18px 0 4px;" id="worryTitle">어떤 게 힘들었나요?</p>
+        <p style="font-size:12px;color:#8A96A3;margin-bottom:12px;" id="worryMulti">여러 개 골라도 돼요</p>
+        <div class="worry-grid" id="worryGrid"></div>
+        <label class="form-label" id="detailLabel">자세히 쓰고 싶으면 써봐요</label>
+        <textarea class="form-textarea" id="detailText" rows="3"></textarea>
+        <div class="help-box">
+          <p class="help-title" id="helpTitle">선생님께 도움을 요청할까요?</p>
+          <p class="help-desc" id="helpDesc">체크하면 선생님께 알림이 가요</p>
+          <div class="toggle-row" onclick="toggleHelp()">
+            <div class="toggle-track" id="helpTrack"><div class="toggle-thumb"></div></div>
+            <span class="toggle-label" id="helpCheck">선생님, 도와주세요 🔔</span>
+          </div>
+          <div class="help-warn" id="helpWarn"></div>
+        </div>
+      </div>
+    </div>
+    <div class="lock-block" id="lockBlock">
+      <div class="toggle-row" onclick="toggleLock()">
+        <div class="toggle-track" id="lockTrack"><div class="toggle-thumb"></div></div>
+        <span class="toggle-label" id="lockLabel" style="color:#8A96A3;">이 내용을 선생님께 비공개로 할게요 🔒</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goStep1()" id="btnBack2"></button>
+      <button class="btn-save" id="btnSave" onclick="doSave()" disabled></button>
+    </div>
+  </div>
+</div>
+
+<!-- 저장 완료 -->
+<div id="screen-saved" class="screen">
+  <div class="saved-box-anim">🗃️</div>
+  <h2 class="saved-title" id="savedMsg">오늘도 잘 했어요!</h2>
+  <p class="saved-sub" id="savedSub">마음속 이야기를 잘 담았어요 🌟</p>
+  <div class="saved-emoji" id="savedEmoji"></div>
+  <button class="btn-primary" style="padding:14px 36px;width:auto;" onclick="doLogout()" id="savedHome">홈으로</button>
+</div>
+
+<!-- 챗봇 -->
+<div id="screen-chat" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="hideChat()">←</button>
+    <span class="topbar-title" id="chatTitle">💬 문화 궁금증 물어보기</span>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-bar">
+    <input class="chat-input" id="chatInput" placeholder="궁금한 걸 써봐요..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">→</button>
+  </div>
+</div>
+
+<!-- 선생님 대시보드 -->
+<div id="screen-teacher" class="screen">
+  <div class="teacher-header">
+    <div class="teacher-header-top">
+      <span class="teacher-title">👩‍🏫 선생님 대시보드</span>
+      <span id="teacherGrade" style="font-size:13px;opacity:0.7;"></span>
+      <button class="btn-logout" onclick="doLogout()">로그아웃</button>
+    </div>
+    <div class="summary-grid" id="summaryGrid"></div>
+  </div>
+  <div class="tabbar">
+    <button class="tabbar-btn active" onclick="teacherTab('checkin',this)"><span class="tabbar-icon">📋</span>체크인</button>
+    <button class="tabbar-btn" onclick="teacherTab('notice',this)"><span class="tabbar-icon">📢</span>공지</button>
+    <button class="tabbar-btn" onclick="teacherTab('messages',this)"><span class="tabbar-icon">💬</span>메시지</button>
+    <button class="tabbar-btn" onclick="teacherTab('manage',this)"><span class="tabbar-icon">⚙️</span>계정관리</button>
+  </div>
+  <div id="teacherPanelCheckin">
+    <div class="help-alert" id="helpAlert" style="display:none">
+      <p class="help-alert-title">🔔 도움을 요청한 학생</p>
+      <div id="helpAlertList"></div>
+    </div>
+    <div class="student-list">
+      <p class="student-list-title">오늘 우리 반</p>
+      <div id="studentList"></div>
+    </div>
+  </div>
+  <div id="teacherPanelNotice" style="display:none">
+    <div class="notice-form">
+      <p style="font-weight:800;color:#1C2B3A;font-size:15px;margin-bottom:14px;">📢 공지 작성</p>
+      <label class="form-label">제목</label>
+      <input type="text" id="noticeTitle" placeholder="공지 제목을 입력해요">
+      <label class="form-label" style="margin-bottom:6px;">내용</label>
+      <textarea id="noticeBody" rows="5" placeholder="공지 내용을 입력해요. 학부모에게는 자동으로 번역돼서 전달됩니다."></textarea>
+      <p style="font-size:12px;color:#8A96A3;margin:8px 0 14px;">✅ 학부모 모국어로 자동 번역 전송</p>
+      <button class="btn-purple" onclick="sendNotice()">공지 전송하기 →</button>
+      <div id="noticeSentMsg" style="display:none;margin-top:12px;text-align:center;color:#4CAF82;font-weight:800;">✅ 공지가 전송됐어요!</div>
+    </div>
+    <div class="student-list">
+      <p class="student-list-title">이전 공지 목록</p>
+      <div id="teacherNoticeList"></div>
+    </div>
+  </div>
+  <div id="teacherPanelMessages" style="display:none">
+    <div class="student-list">
+      <p class="student-list-title">💬 학부모 메시지</p>
+      <div id="teacherParentList"></div>
+    </div>
+  </div>
+  <div id="teacherPanelManage" style="display:none">
+    <div class="teacher-manage">
+      <!-- 학생 계정 관리 -->
+      <div class="manage-card">
+        <p class="manage-title">🎒 학생 계정 관리</p>
+        <div id="studentAccountList"></div>
+        <div class="add-account-form">
+          <p style="font-size:13px;font-weight:700;color:#8A96A3;">새 학생 추가</p>
+          <input type="text" id="newStudentName" placeholder="학생 이름">
+          <select id="newStudentLang">
+            <option value="vi">🇻🇳 베트남어</option>
+            <option value="zh">🇨🇳 중국어</option>
+            <option value="en">🇺🇸 영어</option>
+            <option value="mn">🇲🇳 몽골어</option>
+            <option value="tl">🇵🇭 필리핀어</option>
+          </select>
+          <input type="text" id="newStudentId" placeholder="아이디 (예: 2026-301-01)">
+          <input type="text" id="newStudentPw" placeholder="비밀번호 (예: star1234)">
+          <p style="font-size:11px;color:#8A96A3;margin-top:-4px;">비워두면 자동 생성됩니다</p>
+          <button class="btn-purple" onclick="addStudent()">학생 추가하기</button>
+        </div>
+      </div>
+      <!-- 학부모 계정 관리 -->
+      <div class="manage-card">
+        <p class="manage-title">👨‍👩‍👧 학부모 계정 관리</p>
+        <div id="parentAccountList"></div>
+        <div class="add-account-form">
+          <p style="font-size:13px;font-weight:700;color:#8A96A3;">새 학부모 추가</p>
+          <select id="newParentStudent">
+            <option value="">학생 선택</option>
+          </select>
+          <input type="text" id="newParentName" placeholder="학부모 이름 (예: 홍길동 어머니)">
+          <input type="text" id="newParentId" placeholder="아이디 (예: parent-301-01)">
+          <input type="text" id="newParentPw" placeholder="비밀번호 (예: par1234)">
+          <p style="font-size:11px;color:#8A96A3;margin-top:-4px;">비워두면 자동 생성됩니다</p>
+          <button class="btn-purple" onclick="addParent()">학부모 추가하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 학생 상세 -->
+<div id="screen-detail" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="hideDetail()">←</button>
+    <span class="topbar-title" id="detailName"></span>
+    <span id="detailHelpBadge" style="display:none;background:rgba(232,112,90,0.13);color:#E8705A;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;">🔔 도움 요청</span>
+  </div>
+  <div class="detail-content">
+    <div class="trans-toggle">
+      <button class="trans-btn active" onclick="setTrans(true)" id="transBtnKo">번역본 (한국어)</button>
+      <button class="trans-btn" onclick="setTrans(false)" id="transBtnOrig">원문</button>
+    </div>
+    <div class="detail-card" id="detailEmotion"></div>
+    <div class="detail-card" id="detailDay"></div>
+    <div class="detail-card" id="detailWorry" style="display:none"></div>
+  </div>
+</div>
+
+<!-- 학부모 화면 -->
+<div id="screen-parent" class="screen">
+  <div class="parent-header">
+    <div class="parent-header-top">
+      <span class="parent-title">👨‍👩‍👧 우리 아이 학교생활</span>
+      <button class="btn-logout" onclick="doLogout()">로그아웃</button>
+    </div>
+    <p class="parent-sub" id="parentSub"></p>
+  </div>
+  <div class="tabbar" style="top:93px;">
+    <button class="tabbar-btn active" onclick="parentTab('notices',this)"><span class="tabbar-icon">📢</span>공지</button>
+    <button class="tabbar-btn" onclick="parentTab('messages',this)"><span class="tabbar-icon">💬</span>선생님과 대화</button>
+  </div>
+  <div id="parentPanelNotices">
+    <div class="notice-section">
+      <p class="section-title">📢 선생님 공지</p>
+      <div id="parentNoticeList"></div>
+    </div>
+  </div>
+  <div id="parentPanelMessages" style="display:none">
+    <div class="notice-section" style="padding-bottom:80px;">
+      <p class="section-title">💬 담임선생님과 대화</p>
+      <div id="parentMsgThread"></div>
+    </div>
+    <div class="chat-input-bar" style="position:sticky;bottom:0;background:#FDFAF6;">
+      <input class="chat-input" id="parentMsgInput" placeholder="선생님께 메시지를 보내요..." onkeydown="if(event.key==='Enter')sendParentMsg()">
+      <button class="chat-send" onclick="sendParentMsg()">→</button>
+    </div>
+  </div>
+</div>
+
+<!-- 1:1 메시지 -->
+<div id="screen-message" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="hideMessage()">←</button>
+    <span class="topbar-title" id="msgTitle"></span>
+    <span id="msgLangBadge" style="font-size:12px;color:#9B8EC4;font-weight:700;"></span>
+  </div>
+  <div class="chat-messages" id="msgThread" style="padding-bottom:80px;"></div>
+  <div class="chat-input-bar" style="position:sticky;bottom:0;">
+    <input class="chat-input" id="msgInput" placeholder="메시지를 입력해요..." onkeydown="if(event.key==='Enter')sendTeacherMsg()">
+    <button class="chat-send" onclick="sendTeacherMsg()">→</button>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, where, orderBy, onSnapshot, serverTimestamp, getDocs, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBhqXlu2Zwfh_P4c-Olg3oJWYME5im4daw",
+  authDomain: "suber-922de.firebaseapp.com",
+  projectId: "suber-922de",
+  storageBucket: "suber-922de.firebasestorage.app",
+  messagingSenderId: "620029967613",
+  appId: "1:620029967613:web:ea973abdd6eca10a939294"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── 전역 노출 (모듈 밖에서 접근) ──────────────────
+window._fb = { auth, db, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword,
+  doc, getDoc, setDoc, addDoc, collection, query, where, orderBy, onSnapshot,
+  serverTimestamp, getDocs, updateDoc, deleteDoc };
+window._fbReady = true;
+document.dispatchEvent(new Event('fbReady'));
+</script>
+
+<script>
+// ── 상수 ──────────────────────────────────────────────
+const LANGS = [
+  {code:"ko",flag:"🇰🇷",label:"한국어"},
+  {code:"vi",flag:"🇻🇳",label:"Tiếng Việt"},
+  {code:"zh",flag:"🇨🇳",label:"中文"},
+  {code:"en",flag:"🇺🇸",label:"English"},
+  {code:"mn",flag:"🇲🇳",label:"Монгол"},
+  {code:"tl",flag:"🇵🇭",label:"Filipino"},
+];
+const WORRY_CATS = {
+  ko:[{id:"lang",icon:"🗣️",label:"말이 잘 안 통해요"},{id:"friend",icon:"👫",label:"친구랑 문제가 있어요"},{id:"study",icon:"📚",label:"공부가 너무 어려워요"},{id:"home",icon:"🏠",label:"고향이 그리워요"},{id:"culture",icon:"😕",label:"이상하고 낯설어요"},{id:"etc",icon:"😶",label:"잘 모르겠어요"}],
+  vi:[{id:"lang",icon:"🗣️",label:"Khó nói chuyện"},{id:"friend",icon:"👫",label:"Có vấn đề với bạn bè"},{id:"study",icon:"📚",label:"Học quá khó"},{id:"home",icon:"🏠",label:"Nhớ quê hương"},{id:"culture",icon:"😕",label:"Cảm thấy lạ lẫm"},{id:"etc",icon:"😶",label:"Không biết tại sao"}],
+  zh:[{id:"lang",icon:"🗣️",label:"语言不通"},{id:"friend",icon:"👫",label:"和朋友有矛盾"},{id:"study",icon:"📚",label:"学习太难了"},{id:"home",icon:"🏠",label:"想家了"},{id:"culture",icon:"😕",label:"感到陌生"},{id:"etc",icon:"😶",label:"不知道为什么"}],
+  en:[{id:"lang",icon:"🗣️",label:"Hard to talk"},{id:"friend",icon:"👫",label:"Friend trouble"},{id:"study",icon:"📚",label:"Study is too hard"},{id:"home",icon:"🏠",label:"Missing home"},{id:"culture",icon:"😕",label:"Feels strange here"},{id:"etc",icon:"😶",label:"Not sure why"}],
+  mn:[{id:"lang",icon:"🗣️",label:"Хэл нь хэцүү"},{id:"friend",icon:"👫",label:"Найзтай асуудал гарлаа"},{id:"study",icon:"📚",label:"Сурах нь хэцүү"},{id:"home",icon:"🏠",label:"Нутаг санагдаж байна"},{id:"culture",icon:"😕",label:"Бүх зүйл харь мэт"},{id:"etc",icon:"😶",label:"Яагаад гэдгээ мэдэхгүй"}],
+  tl:[{id:"lang",icon:"🗣️",label:"Mahirap makipag-usap"},{id:"friend",icon:"👫",label:"May problema sa kaibigan"},{id:"study",icon:"📚",label:"Napakahirap ng aralin"},{id:"home",icon:"🏠",label:"Namimiss ang tahanan"},{id:"culture",icon:"😕",label:"Pakiramdam banyaga"},{id:"etc",icon:"😶",label:"Hindi ko alam bakit"}],
+};
+const GOOD_OPTIONS = {
+  ko:[{icon:"⚽",label:"운동"},{icon:"🎨",label:"미술"},{icon:"📖",label:"독서"},{icon:"🍱",label:"급식"},{icon:"🎮",label:"놀이"},{icon:"🤝",label:"친구"},{icon:"🧩",label:"수업"},{icon:"🌟",label:"칭찬"}],
+  vi:[{icon:"⚽",label:"Thể thao"},{icon:"🎨",label:"Mỹ thuật"},{icon:"📖",label:"Đọc sách"},{icon:"🍱",label:"Bữa ăn"},{icon:"🎮",label:"Vui chơi"},{icon:"🤝",label:"Bạn bè"},{icon:"🧩",label:"Bài học"},{icon:"🌟",label:"Được khen"}],
+  zh:[{icon:"⚽",label:"运动"},{icon:"🎨",label:"美术"},{icon:"📖",label:"阅读"},{icon:"🍱",label:"午餐"},{icon:"🎮",label:"游戏"},{icon:"🤝",label:"朋友"},{icon:"🧩",label:"课程"},{icon:"🌟",label:"表扬"}],
+  en:[{icon:"⚽",label:"Sports"},{icon:"🎨",label:"Art"},{icon:"📖",label:"Reading"},{icon:"🍱",label:"Lunch"},{icon:"🎮",label:"Play"},{icon:"🤝",label:"Friends"},{icon:"🧩",label:"Class"},{icon:"🌟",label:"Praise"}],
+  mn:[{icon:"⚽",label:"Спорт"},{icon:"🎨",label:"Урлаг"},{icon:"📖",label:"Уншлага"},{icon:"🍱",label:"Хоол"},{icon:"🎮",label:"Тоглоом"},{icon:"🤝",label:"Найз"},{icon:"🧩",label:"Хичээл"},{icon:"🌟",label:"Магтаал"}],
+  tl:[{icon:"⚽",label:"Palakasan"},{icon:"🎨",label:"Sining"},{icon:"📖",label:"Pagbasa"},{icon:"🍱",label:"Tanghalian"},{icon:"🎮",label:"Laro"},{icon:"🤝",label:"Kaibigan"},{icon:"🧩",label:"Klase"},{icon:"🌟",label:"Papuri"}],
+};
+const EMOTION_COLOR=["#4CAF82","#3AAFA9","#F5C842","#E8924A","#E8705A"];
+const EMOTION_BG=["#E6F7EE","#E0F4F3","#FEF7DC","#FDF0E6","#FDEEE9"];
+const T={
+  ko:{emotions:["아주 좋아요","좋아요","보통이에요","조금 힘들어요","많이 힘들어요"],emotionEmoji:["😄","🙂","😐","😟","😢"],
+      appName:"오늘 하루 어땠어?",appSub:"매일 나의 하루를 기록해요",loginHint:"선생님께 받은 아이디와 비밀번호를 입력해요",
+      idLabel:"아이디",pwLabel:"비밀번호",loginBtn:"로그인",loginErr:"아이디 또는 비밀번호가 틀렸어요",
+      step1Title:"지금 기분이 어때요?",step2Title:"오늘 하루를 상자에 담아봐요",
+      goodLabel:"😊 오늘 좋았던 일",goodNone:"없음",hadBad:"오늘 힘든 일이 있었나요?",yes:"네, 있었어요",no:"없었어요",
+      worryTitle:"어떤 게 힘들었나요?",worryMulti:"여러 개 골라도 돼요",
+      detailLabel:"자세히 쓰고 싶으면 써봐요",detailPh:"어떤 일이 있었는지 써봐요 (안 써도 괜찮아요)",
+      helpTitle:"선생님께 도움을 요청할까요?",helpDesc:"체크하면 선생님께 알림이 가요",helpCheck:"선생님, 도와주세요 🔔",
+      lockLabel:"이 내용을 선생님께 비공개로 할게요 🔒",lockWarning:"도움을 요청하면 선생님이 내용을 볼 수 있어요",
+      saveBtn:"상자 닫기 🗃️",back:"뒤로",savedMsg:"오늘도 잘 했어요!",savedSub:"마음속 이야기를 잘 담았어요 🌟",home:"홈으로",
+      chatWelcome:"안녕! 학교나 한국 문화에 대해 궁금한 게 있으면 뭐든 물어봐요 😊",chatPh:"궁금한 걸 써봐요...",logout:"로그아웃",
+      done:"작성 완료",notYet:"미작성",needHelp:"도움 요청"},
+  vi:{emotions:["Rất vui","Vui","Bình thường","Hơi buồn","Rất buồn"],emotionEmoji:["😄","🙂","😐","😟","😢"],
+      appName:"Hôm nay của bạn thế nào?",appSub:"Ghi lại mỗi ngày của mình",loginHint:"Nhập ID và mật khẩu giáo viên đã cấp",
+      idLabel:"ID",pwLabel:"Mật khẩu",loginBtn:"Đăng nhập",loginErr:"ID hoặc mật khẩu không đúng",
+      step1Title:"Bạn cảm thấy thế nào?",step2Title:"Cho những điều vào hộp hôm nay",
+      goodLabel:"😊 Điều tốt hôm nay",goodNone:"Không có",hadBad:"Hôm nay có điều gì khó khăn không?",yes:"Có",no:"Không",
+      worryTitle:"Điều gì khó khăn?",worryMulti:"Có thể chọn nhiều",
+      detailLabel:"Viết chi tiết nếu muốn",detailPh:"Chuyện gì đã xảy ra? (không bắt buộc)",
+      helpTitle:"Nhờ giáo viên giúp đỡ?",helpDesc:"Giáo viên sẽ nhận thông báo",helpCheck:"Thầy/cô ơi, giúp em với 🔔",
+      lockLabel:"Ẩn nội dung này với giáo viên 🔒",lockWarning:"Khi nhờ giúp đỡ, giáo viên có thể xem nội dung",
+      saveBtn:"Đóng hộp 🗃️",back:"Quay lại",savedMsg:"Bạn đã làm tốt hôm nay!",savedSub:"Câu chuyện trong lòng đã được ghi lại 🌟",home:"Về trang chủ",
+      chatWelcome:"Xin chào! Hỏi bất cứ điều gì về trường học hoặc văn hóa Hàn Quốc 😊",chatPh:"Hỏi bất cứ điều gì...",logout:"Đăng xuất",
+      done:"Hoàn thành",notYet:"Chưa làm",needHelp:"Cần giúp đỡ"},
+  en:{emotions:["Very happy","Happy","Okay","A little sad","Very sad"],emotionEmoji:["😄","🙂","😐","😟","😢"],
+      appName:"How was your day?",appSub:"Record your day every day",loginHint:"Enter the ID and password your teacher gave you",
+      idLabel:"ID",pwLabel:"Password",loginBtn:"Log in",loginErr:"Wrong ID or password",
+      step1Title:"How are you feeling?",step2Title:"Put your day into the box",
+      goodLabel:"😊 Good things today",goodNone:"Nothing",hadBad:"Was there anything hard today?",yes:"Yes",no:"No",
+      worryTitle:"What was difficult?",worryMulti:"You can pick more than one",
+      detailLabel:"Write more if you want",detailPh:"What happened? (optional)",
+      helpTitle:"Ask your teacher for help?",helpDesc:"Your teacher will get a notification",helpCheck:"Teacher, please help me 🔔",
+      lockLabel:"Keep this private from teacher 🔒",lockWarning:"If you ask for help, teacher will see this",
+      saveBtn:"Close the box 🗃️",back:"Back",savedMsg:"Great job today!",savedSub:"Your story is safely stored 🌟",home:"Go home",
+      chatWelcome:"Hi! Ask me anything about school or Korean culture 😊",chatPh:"Ask anything...",logout:"Log out",
+      done:"Done",notYet:"Not yet",needHelp:"Help requested"},
+};
+["zh","mn","tl"].forEach(c=>{T[c]={...T.en};});
+T.zh.emotions=["非常好","好","一般","有点难过","很难过"];T.zh.step1Title="你现在感觉怎么样?";T.zh.hadBad="今天有困难吗?";T.zh.yes="有";T.zh.no="没有";T.zh.goodNone="没有";T.zh.saveBtn="关上箱子 🗃️";T.zh.back="返回";T.zh.savedMsg="今天做得很好!";T.zh.home="回主页";T.zh.logout="退出";T.zh.loginErr="ID或密码错误";T.zh.chatWelcome="你好！有任何关于学校或韩国文化的问题都可以问我 😊";
+T.mn.emotions=["Маш сайн","Сайн","Дунд зэрэг","Арай гунигтай","Маш гунигтай"];T.mn.step1Title="Яаж мэдэрч байна?";T.mn.hadBad="Өнөөдөр хэцүү зүйл байсан уу?";T.mn.yes="Тийм";T.mn.no="Үгүй";T.mn.goodNone="Байхгүй";T.mn.saveBtn="Хайрцаг хаах 🗃️";T.mn.back="Буцах";T.mn.savedMsg="Өнөөдөр сайн хийлээ!";T.mn.home="Нүүр хуудас";T.mn.logout="Гарах";T.mn.chatWelcome="Сайн уу! Соёлын ялгаа эсвэл сургуулийн амьдралын талаар юу ч асуугаарай 😊";
+T.tl.emotions=["Masaya","Medyo masaya","Okay","Medyo malungkot","Malungkot"];T.tl.step1Title="Paano ka nakakaramdam?";T.tl.hadBad="May mahirap na nangyari ngayon?";T.tl.yes="Oo";T.tl.no="Wala";T.tl.goodNone="Wala";T.tl.saveBtn="Isara ang kahon 🗃️";T.tl.back="Bumalik";T.tl.savedMsg="Magaling ngayon!";T.tl.home="Umuwi";T.tl.logout="Lumabas";T.tl.chatWelcome="Kumusta! Magtanong ng kahit ano tungkol sa kulturang Korean 😊";
+
+// ── 상태 ──────────────────────────────────────────────
+let curLang="ko",curAccount=null,curUserId=null;
+let selEmotion=null,selGood="",hadBad=null,selWorries=[],helpOn=false,lockOn=false;
+let prevScreen=null,selStudent=null,showTrans=true;
+let selParentId=null,noticeImgB64=null,noticeImgMime=null,noticeImgUrl=null;
+let msgUnsubscribe=null;
+
+// Firebase 준비 대기
+function waitFb() { return new Promise(r=>{ if(window._fbReady)r(); else document.addEventListener('fbReady',r,{once:true}); }); }
+function fb() { return window._fb; }
+
+// ── 화면 전환 ──────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.scrollTop=0;});
+  const el=document.getElementById('screen-'+id);
+  el.classList.add('active'); el.scrollTop=0;
+}
+function loading(show,text='잠깐만요...') {
+  const el=document.getElementById('loadingOverlay');
+  document.getElementById('loadingText').textContent=text;
+  el.classList[show?'add':'remove']('show');
+}
+
+// ── 언어 선택 ──────────────────────────────────────────────
+function buildLangDropdown() {
+  document.getElementById('langDropdown').innerHTML=LANGS.map(l=>
+    `<button class="lang-option ${l.code===curLang?'selected':''}" onclick="setLang('${l.code}')">${l.flag} ${l.label}</button>`
+  ).join('');
+}
+function toggleLang() { document.getElementById('langDropdown').classList.toggle('open'); buildLangDropdown(); }
+function setLang(code) {
+  curLang=code; const l=LANGS.find(x=>x.code===code);
+  document.getElementById('loginLangFlag').textContent=l.flag;
+  document.getElementById('loginLangLabel').textContent=l.label;
+  document.getElementById('langDropdown').classList.remove('open');
+  applyLoginT();
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.lang-wrap'))document.getElementById('langDropdown').classList.remove('open');});
+function t(key){return(T[curLang]||T.en)[key]||(T.ko)[key]||'';}
+function applyLoginT(){
+  document.getElementById('loginTitle').textContent=t('appName');
+  document.getElementById('loginSub').textContent=t('appSub');
+  document.getElementById('loginHint').textContent=t('loginHint');
+  document.getElementById('idLabel').textContent=t('idLabel');
+  document.getElementById('pwLabel').textContent=t('pwLabel');
+  document.getElementById('loginBtn').textContent=t('loginBtn');
+}
+
+function toggleRegPw(){
+  const inp=document.getElementById('regPw');
+  inp.type=inp.type==='password'?'text':'password';
+  inp.nextElementSibling.textContent=inp.type==='password'?'👁':'🙈';
+}
+
+async function doRegister(){
+  await waitFb();
+  const region=document.getElementById('regRegion').value.trim();
+  const school=document.getElementById('regSchool').value.trim();
+  const grade=parseInt(document.getElementById('regGrade').value);
+  const cls=parseInt(document.getElementById('regCls').value);
+  const name=document.getElementById('regName').value.trim();
+  const id=document.getElementById('regId').value.trim();
+  const pw=document.getElementById('regPw').value;
+  const pwConfirm=document.getElementById('regPwConfirm').value;
+  const errEl=document.getElementById('regErr');
+  errEl.style.display='none';
+
+  if(!region||!school||!name||!id||!pw){
+    errEl.textContent='모든 항목을 입력해주세요'; errEl.style.display='block'; return;
+  }
+  if(pw.length<6){
+    errEl.textContent='비밀번호는 6자 이상이어야 해요'; errEl.style.display='block'; return;
+  }
+  if(pw!==pwConfirm){
+    errEl.textContent='비밀번호가 일치하지 않아요'; errEl.style.display='block'; return;
+  }
+
+  loading(true,'계정 생성 중...');
+  try{
+    const {db,doc,getDoc,setDoc}=fb();
+    const existing=await getDoc(doc(db,'accounts',id));
+    if(existing.exists()){
+      loading(false);
+      errEl.textContent='이미 사용 중인 아이디예요'; errEl.style.display='block'; return;
+    }
+    await setDoc(doc(db,'accounts',id),{
+      name,password:pw,region,school,
+      grade,cls,
+      isTeacher:true,isParent:false,
+      createdAt:new Date().toISOString()
+    });
+    loading(false);
+    alert(`회원가입 완료!\n${region} ${school} ${grade}학년 ${cls}반\n${name} 선생님\n\nID: ${id}\n로그인 해주세요!`);
+    // 입력 초기화
+    ['regRegion','regSchool','regName','regId','regPw','regPwConfirm'].forEach(el=>document.getElementById(el).value='');
+    showScreen('login');
+  }catch(e){loading(false);errEl.textContent='오류: '+e.message;errEl.style.display='block';}
+}
+
+// ── 로그인 ──────────────────────────────────────────────
+function togglePw() {
+  const inp=document.getElementById('loginPw');
+  inp.type=inp.type==='password'?'text':'password';
+  inp.nextElementSibling.textContent=inp.type==='password'?'👁':'🙈';
+}
+
+async function doLogin() {
+  await waitFb();
+  const userId=document.getElementById('loginId').value.trim();
+  const pw=document.getElementById('loginPw').value;
+  const errEl=document.getElementById('loginErr');
+  errEl.style.display='none';
+  if(!userId||!pw){errEl.textContent='아이디와 비밀번호를 입력해주세요';errEl.style.display='block';return;}
+  loading(true,'로그인 중...');
+  try {
+    const {db,doc,getDoc}=fb();
+    // Firestore에서 계정 조회
+    const snap=await getDoc(doc(db,'accounts',userId));
+    if(!snap.exists()){throw new Error('존재하지 않는 계정이에요');}
+    const acc=snap.data();
+    if(acc.password!==pw){throw new Error(t('loginErr'));}
+    curUserId=userId; curAccount={...acc,id:userId};
+    if(!acc.isTeacher&&!acc.isParent) curLang=acc.lang||'ko';
+    else if(acc.isParent) curLang=acc.lang||'ko';
+    loading(false);
+    if(acc.isTeacher) showTeacher();
+    else if(acc.isParent) showParent();
+    else showStep1();
+  } catch(e) {
+    loading(false);
+    errEl.textContent=e.message||t('loginErr');
+    errEl.style.display='block';
+  }
+}
+
+async function doLogout() {
+  if(msgUnsubscribe){msgUnsubscribe();msgUnsubscribe=null;}
+  curAccount=null;curUserId=null;selEmotion=null;selGood='';hadBad=null;
+  selWorries=[];helpOn=false;lockOn=false;
+  document.getElementById('loginId').value='';
+  document.getElementById('loginPw').value='';
+  applyLoginT(); showScreen('login');
+}
+
+// ── STEP 1 ──────────────────────────────────────────────
+function showStep1() {
+  curLang=curAccount.lang||curLang;
+  document.getElementById('step1Name').textContent='🗃️ '+curAccount.name;
+  document.getElementById('step1Title').textContent=t('step1Title');
+  document.getElementById('logoutBtn1').textContent=t('logout');
+  document.getElementById('dot1a').classList.add('active');
+  document.getElementById('dot1b').classList.remove('active');
+  buildEmotions(); showScreen('step1');
+}
+function buildEmotions() {
+  const isKo=curLang==='ko';
+  document.getElementById('emotionList').innerHTML=t('emotions').map((em,i)=>
+    `<button class="emotion-card ${selEmotion===i?'selected':''}"
+      style="border-color:${selEmotion===i?EMOTION_COLOR[i]:'#E8E4DF'};background:${selEmotion===i?EMOTION_BG[i]:'#FDFAF6'};"
+      onclick="pickEmotion(${i})">
+      <span class="em-emoji">${t('emotionEmoji')[i]}</span>
+      <span style="flex:1">
+        <span style="display:block;font-size:16px">${em}</span>
+        ${!isKo?`<span style="display:block;font-size:12px;color:#8A96A3;margin-top:3px">${T.ko.emotions[i]}</span>`:''}
+      </span>
+      <span class="em-check" style="color:${EMOTION_COLOR[i]}">✓</span>
+    </button>`
+  ).join('');
+}
+function pickEmotion(i){selEmotion=i;buildEmotions();document.getElementById('btnNext1').disabled=false;}
+function goStep2(){if(selEmotion===null)return;buildStep2();document.getElementById('dot1b').classList.add('active');showScreen('step2');}
+
+// ── STEP 2 ──────────────────────────────────────────────
+function buildStep2() {
+  document.getElementById('step2Name').textContent='🗃️ '+curAccount.name;
+  document.getElementById('step2Title').textContent=t('step2Title');
+  document.getElementById('goodLabel').textContent=t('goodLabel');
+  document.getElementById('hadBadLabel').textContent=t('hadBad');
+  document.getElementById('btnBadYes').textContent=t('yes');
+  document.getElementById('btnBadNo').textContent=t('no');
+  document.getElementById('worryTitle').textContent=t('worryTitle');
+  document.getElementById('worryMulti').textContent=t('worryMulti');
+  document.getElementById('detailLabel').textContent=t('detailLabel');
+  document.getElementById('detailText').placeholder=t('detailPh');
+  document.getElementById('helpTitle').textContent=t('helpTitle');
+  document.getElementById('helpDesc').textContent=t('helpDesc');
+  document.getElementById('helpCheck').textContent=t('helpCheck');
+  document.getElementById('lockLabel').textContent=t('lockLabel');
+  document.getElementById('btnBack2').textContent='← '+t('back');
+  document.getElementById('btnSave').textContent=t('saveBtn');
+  buildGoodGrid();buildWorryGrid();updateBadState();updateHelpLock();
+}
+function buildGoodGrid() {
+  const opts=GOOD_OPTIONS[curLang]||GOOD_OPTIONS.en;
+  const koOpts=GOOD_OPTIONS.ko; const isKo=curLang==='ko';
+  document.getElementById('goodGrid').innerHTML=
+    `<button class="good-btn ${selGood==='none'?'selected':''}" onclick="pickGood('none')">
+      <span class="g-icon">🚫</span><span class="g-label">${t('goodNone')}</span>
+      ${!isKo?`<span style="font-size:10px;color:#aaa">${T.ko.goodNone||'없음'}</span>`:''}
+    </button>`+
+    opts.map((o,i)=>`<button class="good-btn ${selGood===o.icon?'selected':''}" onclick="pickGood('${o.icon}')">
+      <span class="g-icon">${o.icon}</span><span class="g-label">${o.label}</span>
+      ${!isKo?`<span style="font-size:10px;color:#aaa">${koOpts[i]?.label||''}</span>`:''}
+    </button>`).join('');
+}
+function pickGood(val){selGood=selGood===val?'':val;buildGoodGrid();}
+function buildWorryGrid() {
+  const cats=WORRY_CATS[curLang]||WORRY_CATS.ko; const catsKo=WORRY_CATS.ko; const isKo=curLang==='ko';
+  document.getElementById('worryGrid').innerHTML=cats.map((c,i)=>
+    `<button class="worry-btn ${selWorries.includes(c.id)?'selected':''}" onclick="toggleWorry('${c.id}')">
+      <span class="w-icon">${c.icon}</span>
+      <span><span style="display:block">${c.label}</span>
+      ${!isKo?`<span style="display:block;font-size:11px;opacity:0.65;margin-top:2px">${catsKo[i]?.label||''}</span>`:''}
+      </span>
+    </button>`
+  ).join('');
+}
+function toggleWorry(id){selWorries=selWorries.includes(id)?selWorries.filter(x=>x!==id):[...selWorries,id];buildWorryGrid();}
+function setBad(val){hadBad=val;updateBadState();document.getElementById('btnSave').disabled=false;}
+function updateBadState(){
+  document.getElementById('btnBadYes').className=`bad-btn yes ${hadBad===true?'selected':''}`;
+  document.getElementById('btnBadNo').className=`bad-btn no ${hadBad===false?'selected':''}`;
+  document.getElementById('worryExpand').className=`worry-expand ${hadBad===true?'show':''}`;
+  if(hadBad!==true){helpOn=false;updateHelpLock();}
+}
+function toggleHelp(){helpOn=!helpOn;if(helpOn)lockOn=false;updateHelpLock();}
+function toggleLock(){lockOn=!lockOn;if(lockOn)helpOn=false;updateHelpLock();}
+function updateHelpLock(){
+  document.getElementById('helpTrack').className=`toggle-track ${helpOn?'on':''}`;
+  document.getElementById('lockTrack').className=`toggle-track ${lockOn?'on':''}`;
+  document.getElementById('lockBlock').className=`lock-block ${helpOn?'disabled':''}`;
+  document.getElementById('helpWarn').className=`help-warn ${helpOn?'show':''}`;
+  document.getElementById('helpWarn').textContent=t('lockWarning');
+}
+function goStep1(){showScreen('step1');}
+
+async function doSave() {
+  await waitFb();
+  loading(true,'기록 저장 중...');
+  try {
+    const {db,doc,setDoc,serverTimestamp}=fb();
+    const today=new Date().toISOString().slice(0,10);
+    const record={
+      studentId:curUserId, studentName:curAccount.name,
+      lang:curAccount.lang, grade:curAccount.grade, cls:curAccount.cls,
+      date:today, emotion:selEmotion, good:selGood,
+      hadBad:hadBad||false, worries:selWorries,
+      detail:document.getElementById('detailText').value,
+      helpReq:helpOn, locked:lockOn,
+      createdAt:serverTimestamp()
+    };
+    await setDoc(doc(db,'records',`${curUserId}_${today}`),record);
+    loading(false);
+    document.getElementById('savedMsg').textContent=t('savedMsg');
+    document.getElementById('savedSub').textContent=t('savedSub');
+    document.getElementById('savedHome').textContent=t('home');
+    document.getElementById('savedEmoji').textContent=t('emotionEmoji')[selEmotion];
+    document.getElementById('screen-saved').style.background=`linear-gradient(160deg,${EMOTION_BG[selEmotion]},#F7F3EE)`;
+    showScreen('saved');
+  } catch(e) { loading(false); alert('저장 실패: '+e.message); }
+}
+
+// ── 챗봇 ──────────────────────────────────────────────
+function showChat(){prevScreen=document.querySelector('.screen.active')?.id.replace('screen-','')||'step1';document.getElementById('chatMessages').innerHTML=`<div class="chat-bubble-wrap"><div class="chat-bubble bot">${t('chatWelcome')}</div></div>`;document.getElementById('chatInput').placeholder=t('chatPh');showScreen('chat');}
+function hideChat(){showScreen(prevScreen||'step1');}
+async function sendChat(){
+  const inp=document.getElementById('chatInput');const msg=inp.value.trim();if(!msg)return;
+  inp.value='';const msgs=document.getElementById('chatMessages');
+  msgs.innerHTML+=`<div class="chat-bubble-wrap user"><div class="chat-bubble user">${msg}</div></div>`;
+  msgs.innerHTML+=`<div class="chat-dots" id="thinkingDots"><div class="chat-dot"></div><div class="chat-dot"></div><div class="chat-dot"></div></div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:`You are a kind cultural guide for an elementary school child who immigrated to Korea. Speak in ${curLang} language warmly and simply. Answer: ${msg}`}]})});
+    const data=await res.json();
+    document.getElementById('thinkingDots')?.remove();
+    msgs.innerHTML+=`<div class="chat-bubble-wrap"><div class="chat-bubble bot">${data.content?.map(c=>c.text||'').join('')||'...'}</div></div>`;
+  }catch{document.getElementById('thinkingDots')?.remove();msgs.innerHTML+=`<div class="chat-bubble-wrap"><div class="chat-bubble bot">😅 잠깐 연결이 안 됐어요!</div></div>`;}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ── 번역 헬퍼 (MyMemory API - 무료, CORS 없음) ──────────────────────────────────────────────
+const LANG_CODES = {
+  ko:'ko', vi:'vi', zh:'zh', en:'en', mn:'mn', tl:'tl', th:'th'
+};
+async function translateText(text, toLangCode, fromLangCode='ko'){
+  if(!text || toLangCode===fromLangCode) return text;
+  const from = LANG_CODES[fromLangCode] || fromLangCode;
+  const to   = LANG_CODES[toLangCode]   || toLangCode;
+  try{
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if(data.responseStatus===200 && data.responseData?.translatedText){
+      return data.responseData.translatedText;
+    }
+    return text;
+  }catch{ return text; }
+}
+async function analyzeImage(b64,mime){
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mime,data:b64}},{type:'text',text:'이 이미지에서 텍스트를 모두 추출해서 읽기 쉽게 정리해줘. 텍스트만 반환하고 다른 말은 하지 마.'}]}]})});
+    const data=await res.json();
+    return data.content?.map(c=>c.text||'').join('')||'';
+  }catch{return '';}
+}
+
+// ── 선생님 대시보드 ──────────────────────────────────────────────
+async function showTeacher() {
+  await waitFb();
+  loading(true,'데이터 불러오는 중...');
+  const {db,collection,query,where,getDocs,doc,getDoc}=fb();
+  const acc=curAccount;
+  document.getElementById('teacherGrade').textContent=`${acc.grade}학년 ${acc.cls}반`;
+
+  try {
+    // 학생 목록 조회
+    const studQ=query(collection(db,'accounts'),where('grade','==',acc.grade),where('cls','==',acc.cls),where('isTeacher','==',false),where('isParent','==',false));
+    const studSnap=await getDocs(studQ);
+    const students=studSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+    // 오늘 기록 조회
+    const today=new Date().toISOString().slice(0,10);
+    const recQ=query(collection(db,'records'),where('grade','==',acc.grade),where('cls','==',acc.cls),where('date','==',today));
+    const recSnap=await getDocs(recQ);
+    const records={};
+    recSnap.docs.forEach(d=>{records[d.data().studentId]=d.data();});
+
+    const done=students.filter(s=>records[s.id]).length;
+    const helpStudents=students.filter(s=>records[s.id]?.helpReq);
+
+    document.getElementById('summaryGrid').innerHTML=[
+      {label:'작성 완료',value:`${done}명`,color:'#4CAF82',icon:'✅'},
+      {label:'미작성',value:`${students.length-done}명`,color:'#F5C842',icon:'⏳'},
+      {label:'도움 요청',value:`${helpStudents.length}명`,color:'#E8705A',icon:'🔔'},
+    ].map(c=>`<div class="summary-card"><div class="summary-icon">${c.icon}</div><div class="summary-value" style="color:${c.color}">${c.value}</div><div class="summary-label">${c.label}</div></div>`).join('');
+
+    const alertBox=document.getElementById('helpAlert');
+    if(helpStudents.length>0){
+      alertBox.style.display='block';
+      document.getElementById('helpAlertList').innerHTML=helpStudents.map(s=>
+        `<div class="help-student-row">
+          <span style="font-size:22px">${T.ko.emotionEmoji[records[s.id].emotion]}</span>
+          <span style="font-weight:800;color:#1C2B3A;font-size:14px">${s.name}</span>
+          <span>${LANGS.find(l=>l.code===s.lang)?.flag||''}</span>
+          <button onclick="showDetail('${s.id}')" style="margin-left:auto;padding:5px 12px;border-radius:10px;border:none;background:#E8705A;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">보기 →</button>
+        </div>`).join('');
+    } else { alertBox.style.display='none'; }
+
+    const cats=WORRY_CATS.ko;
+    document.getElementById('studentList').innerHTML=students.map(s=>{
+      const rec=records[s.id]; const lInfo=LANGS.find(l=>l.code===s.lang);
+      const worryFirst=rec?.hadBad&&rec.worries?.length>0?cats.find(c=>c.id===rec.worries[0]):null;
+      return `<div class="student-card ${rec?.helpReq?'help':''}">
+        <div class="student-avatar" style="background:${rec?EMOTION_BG[rec.emotion]:'#E8E4DF'}">${rec?T.ko.emotionEmoji[rec.emotion]:'❓'}</div>
+        <div class="student-info">
+          <div class="student-name-row">
+            <span class="student-name">${s.name}</span><span>${lInfo?.flag||''}</span>
+            ${rec?.locked?'<span class="badge badge-lock">🔒</span>':''}
+            ${rec?.helpReq?'<span class="badge badge-help">🔔 도움요청</span>':''}
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <span class="badge ${rec?'badge-done':'badge-notyet'}">${rec?'✅ 작성 완료':'⏳ 미작성'}</span>
+            ${worryFirst?`<span class="badge badge-worry">${worryFirst.icon} ${rec.worries.length>1?`외 ${rec.worries.length-1}가지`:worryFirst.label}</span>`:''}
+          </div>
+        </div>
+        ${rec?`<button class="btn-view" onclick='showDetailWithData(${JSON.stringify({...s,record:rec})})'>보기 →</button>`:''}
+      </div>`;
+    }).join('');
+
+    // 공지 목록
+    await loadTeacherNotices();
+
+    // 학부모 목록
+    const parQ=query(collection(db,'accounts'),where('grade','==',acc.grade),where('cls','==',acc.cls),where('isParent','==',true));
+    const parSnap=await getDocs(parQ);
+    const parents=parSnap.docs.map(d=>({id:d.id,...d.data()}));
+    document.getElementById('teacherParentList').innerHTML=parents.length===0
+      ? '<p style="color:#8A96A3;font-size:14px;padding:12px">등록된 학부모가 없어요</p>'
+      : parents.map(pa=>{
+          const lInfo=LANGS.find(l=>l.code===pa.lang);
+          return `<div class="parent-row" onclick="showMessage('${pa.id}')">
+            <div class="parent-avatar">${lInfo?.flag||'👤'}</div>
+            <div class="parent-row-info">
+              <div class="parent-row-name">${pa.name}</div>
+              <div class="parent-row-preview">${pa.studentName} 학생 학부모</div>
+            </div>
+          </div>`;
+        }).join('');
+
+    // 계정관리 탭
+    await loadManageTab(students, parents);
+
+    loading(false);
+    showScreen('teacher');
+  } catch(e) { loading(false); alert('오류: '+e.message); }
+}
+
+async function loadTeacherNotices(){
+  const {db,collection,query,where,orderBy,getDocs}=fb();
+  const acc=curAccount;
+  try{
+    const nQ=query(collection(db,'notices'),where('grade','==',acc.grade),where('cls','==',acc.cls),orderBy('createdAt','desc'));
+    const nSnap=await getDocs(nQ);
+    const notices=nSnap.docs.map(d=>({id:d.id,...d.data()}));
+    document.getElementById('teacherNoticeList').innerHTML=notices.length===0
+      ?'<p style="color:#8A96A3;font-size:14px;padding:0 0 12px">아직 공지가 없어요</p>'
+      :notices.map(n=>`<div style="background:#FDFAF6;border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:0 2px 6px rgba(0,0,0,0.05);border-left:3px solid #9B8EC4;">
+          <p style="font-weight:800;font-size:14px;color:#1C2B3A;margin-bottom:4px">${n.title}</p>
+          <p style="font-size:12px;color:#8A96A3">${n.date}</p>
+        </div>`).join('');
+  }catch(e){console.log('notices load error',e);}
+}
+
+function teacherTab(name,el){
+  document.querySelectorAll('.tabbar-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  ['Checkin','Notice','Messages','Manage'].forEach(n=>document.getElementById('teacherPanel'+n).style.display='none');
+  document.getElementById('teacherPanel'+name.charAt(0).toUpperCase()+name.slice(1)).style.display='block';
+}
+
+// ── 공지 전송 ──────────────────────────────────────────────
+function handleNoticeImg(input){
+  const file=input.files[0];if(!file)return;
+  noticeImgMime=file.type||'image/jpeg';
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    noticeImgB64=e.target.result.split(',')[1];
+    document.getElementById('noticeImgEl').src=e.target.result;
+    document.getElementById('noticeImgPreview').style.display='block';
+    const ocrL=document.getElementById('ocrLoading');
+    ocrL.style.display='flex';
+    document.getElementById('ocrResult').style.display='none';
+    const text=await analyzeImage(noticeImgB64,noticeImgMime);
+    ocrL.style.display='none';
+    if(text){document.getElementById('ocrText').textContent=text;document.getElementById('ocrResult').style.display='block';}
+  };
+  reader.readAsDataURL(file);
+}
+function removeNoticeImg(){noticeImgB64=null;noticeImgMime=null;noticeImgUrl=null;document.getElementById('noticeImgPreview').style.display='none';document.getElementById('noticeImgInput').value='';}
+
+async function sendNotice(){
+  await waitFb();
+  const title=document.getElementById('noticeTitle').value.trim();
+  const body=document.getElementById('noticeBody').value.trim();
+  if(!title||!body){alert('제목과 내용을 입력해주세요');return;}
+  loading(true,'공지 전송 중...');
+  try{
+    const {db,addDoc,collection,serverTimestamp}=fb();
+    const acc=curAccount;
+    await addDoc(collection(db,'notices'),{
+      title,body,
+      grade:acc.grade,cls:acc.cls,
+      teacherId:curUserId,teacherName:acc.name,
+      date:new Date().toISOString().slice(0,10),
+      createdAt:serverTimestamp()
+    });
+    loading(false);
+    document.getElementById('noticeTitle').value='';
+    document.getElementById('noticeBody').value='';
+    document.getElementById('noticeSentMsg').style.display='block';
+    setTimeout(()=>document.getElementById('noticeSentMsg').style.display='none',2500);
+    await loadTeacherNotices();
+  }catch(e){loading(false);alert('전송 실패: '+e.message);}
+}
+
+// ── 계정 관리 ──────────────────────────────────────────────
+async function loadManageTab(students,parents){
+  // 학생 목록
+  document.getElementById('studentAccountList').innerHTML=students.map(s=>{
+    const lInfo=LANGS.find(l=>l.code===s.lang);
+    return `<div class="account-row">
+      <div class="account-info">
+        <div class="account-name">${lInfo?.flag||''} ${s.name}</div>
+        <div class="account-id">ID: ${s.id} / PW: ${s.password}</div>
+      </div>
+      <button class="btn-sm-red" onclick="deleteAccount('${s.id}')">삭제</button>
+    </div>`;
+  }).join('') || '<p style="color:#8A96A3;font-size:13px;padding:8px 0">등록된 학생이 없어요</p>';
+
+  // 학부모 목록
+  document.getElementById('parentAccountList').innerHTML=parents.map(p=>{
+    const lInfo=LANGS.find(l=>l.code===p.lang);
+    return `<div class="account-row">
+      <div class="account-info">
+        <div class="account-name">${lInfo?.flag||''} ${p.name}</div>
+        <div class="account-id">ID: ${p.id} / PW: ${p.password}</div>
+      </div>
+      <button class="btn-sm-red" onclick="deleteAccount('${p.id}')">삭제</button>
+    </div>`;
+  }).join('') || '<p style="color:#8A96A3;font-size:13px;padding:8px 0">등록된 학부모가 없어요</p>';
+
+  // 학부모 추가 시 학생 선택 드롭다운
+  const sel=document.getElementById('newParentStudent');
+  sel.innerHTML='<option value="">학생 선택</option>'+students.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+async function addStudent(){
+  await waitFb();
+  const name=document.getElementById('newStudentName').value.trim();
+  const lang=document.getElementById('newStudentLang').value;
+  const customId=document.getElementById('newStudentId').value.trim();
+  const customPw=document.getElementById('newStudentPw').value.trim();
+  if(!name){alert('학생 이름을 입력해주세요');return;}
+  loading(true,'학생 계정 추가 중...');
+  try{
+    const {db,doc,getDoc,setDoc}=fb();
+    const acc=curAccount;
+    const today=new Date();
+    const year=today.getFullYear();
+    const id=customId||`${year}-${acc.grade}${String(acc.cls).padStart(2,'0')}-${String(Date.now()).slice(-2)}`;
+    const pw=customPw||`star${String(Date.now()).slice(-4)}`;
+    // 중복 아이디 확인
+    const existing=await getDoc(doc(db,'accounts',id));
+    if(existing.exists()){alert('이미 사용 중인 아이디예요. 다른 아이디를 입력해주세요.');loading(false);return;}
+    await setDoc(doc(db,'accounts',id),{
+      name,lang,password:pw,
+      grade:acc.grade,cls:acc.cls,
+      isTeacher:false,isParent:false,
+      createdAt:new Date().toISOString()
+    });
+    loading(false);
+    document.getElementById('newStudentName').value='';
+    document.getElementById('newStudentId').value='';
+    document.getElementById('newStudentPw').value='';
+    alert(`학생 추가 완료!\nID: ${id}\nPW: ${pw}\n학생에게 알려주세요`);
+    await showTeacher();
+  }catch(e){loading(false);alert('추가 실패: '+e.message);}
+}
+
+async function addParent(){
+  await waitFb();
+  const studentId=document.getElementById('newParentStudent').value;
+  const name=document.getElementById('newParentName').value.trim();
+  const customId=document.getElementById('newParentId').value.trim();
+  const customPw=document.getElementById('newParentPw').value.trim();
+  if(!studentId||!name){alert('학생과 학부모 이름을 입력해주세요');return;}
+  loading(true,'학부모 계정 추가 중...');
+  try{
+    const {db,doc,getDoc,setDoc}=fb();
+    const studentSnap=await getDoc(doc(db,'accounts',studentId));
+    const student=studentSnap.data();
+    const id=customId||`parent-${studentId}`;
+    const pw=customPw||`par${String(Date.now()).slice(-4)}`;
+    // 중복 아이디 확인
+    const existing=await getDoc(doc(db,'accounts',id));
+    if(existing.exists()){alert('이미 사용 중인 아이디예요. 다른 아이디를 입력해주세요.');loading(false);return;}
+    await setDoc(doc(db,'accounts',id),{
+      name,lang:student.lang,password:pw,
+      grade:student.grade,cls:student.cls,
+      isTeacher:false,isParent:true,
+      studentId,studentName:student.name,
+      createdAt:new Date().toISOString()
+    });
+    loading(false);
+    document.getElementById('newParentName').value='';
+    document.getElementById('newParentId').value='';
+    document.getElementById('newParentPw').value='';
+    alert(`학부모 추가 완료!\nID: ${id}\nPW: ${pw}\n학부모에게 알려주세요`);
+    await showTeacher();
+  }catch(e){loading(false);alert('추가 실패: '+e.message);}
+}
+
+async function deleteAccount(id){
+  if(!confirm('정말 삭제하시겠어요?'))return;
+  await waitFb();
+  loading(true,'삭제 중...');
+  try{
+    const {db,doc,deleteDoc}=fb();
+    await deleteDoc(doc(db,'accounts',id));
+    loading(false); await showTeacher();
+  }catch(e){loading(false);alert('삭제 실패: '+e.message);}
+}
+
+// ── 학생 상세 ──────────────────────────────────────────────
+function showDetailWithData(s){selStudent=s;renderDetail();showScreen('detail');}
+async function showDetail(id){
+  await waitFb();
+  const {db,doc,getDoc,collection,query,where,orderBy,getDocs}=fb();
+  const snap=await getDoc(doc(db,'accounts',id));
+  const today=new Date().toISOString().slice(0,10);
+  // 오늘 기록 기본으로 불러오기
+  const recSnap=await getDoc(doc(db,'records',`${id}_${today}`));
+  // 전체 기록 날짜 목록도 불러오기
+  const allRecs=await getDocs(query(collection(db,'records'),where('studentId','==',id),orderBy('date','desc')));
+  const allDates=allRecs.docs.map(d=>d.data().date);
+  selStudent={id,...snap.data(),record:recSnap.exists()?recSnap.data():null,allDates,allRecords:{}};
+  allRecs.docs.forEach(d=>{ selStudent.allRecords[d.data().date]=d.data(); });
+  selStudent.viewDate=today;
+  await renderDetail(); showScreen('detail');
+}
+function hideDetail(){showScreen('teacher');}
+function setTrans(val){
+  showTrans=val;
+  document.getElementById('transBtnKo').className=`trans-btn ${val?'active':''}`;
+  document.getElementById('transBtnOrig').className=`trans-btn ${!val?'active':''}`;
+  renderDetail();
+}
+async function changeDetailDate(date){
+  selStudent.viewDate=date;
+  selStudent.record=selStudent.allRecords[date]||null;
+  await renderDetail();
+}
+async function renderDetail(){
+  const s=selStudent,rec=s.record,tS=T[s.lang]||T.en;
+  const catsKo=WORRY_CATS.ko,catsLang=WORRY_CATS[s.lang]||WORRY_CATS.en;
+  const lFlag=LANGS.find(l=>l.code===s.lang)?.flag||'';
+  const langLabel=LANGS.find(l=>l.code===s.lang)?.label||'';
+  document.getElementById('detailName').textContent=`${lFlag} ${s.name}`;
+  document.getElementById('detailHelpBadge').style.display=rec?.helpReq?'inline-block':'none';
+  document.getElementById('transBtnKo').textContent='번역본 (한국어)';
+  document.getElementById('transBtnOrig').textContent=`원문 (${langLabel})`;
+
+  // 날짜 선택기
+  const dates=s.allDates||[];
+  const datePickerHTML=dates.length>0?`
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:13px;color:#8A96A3;font-weight:700">날짜 선택</span>
+      <select onchange="changeDetailDate(this.value)" style="padding:6px 12px;border-radius:10px;border:1.5px solid #E8E4DF;font-size:13px;color:#1C2B3A;background:#FDFAF6;outline:none;">
+        ${dates.map(d=>`<option value="${d}" ${d===s.viewDate?'selected':''}>${d}</option>`).join('')}
+      </select>
+    </div>`:
+    `<div style="margin-bottom:12px;font-size:13px;color:#8A96A3">기록 날짜: ${s.viewDate||'오늘'}</div>`;
+
+  // 날짜 선택기를 transBtnOrig 다음에 추가
+  let dateEl=document.getElementById('detailDatePicker');
+  if(!dateEl){
+    dateEl=document.createElement('div');
+    dateEl.id='detailDatePicker';
+    document.querySelector('.detail-content').insertBefore(dateEl, document.getElementById('detailEmotion'));
+  }
+  dateEl.innerHTML=datePickerHTML;
+
+  if(!rec){
+    document.getElementById('detailEmotion').innerHTML='<p style="color:#8A96A3;text-align:center;padding:20px">이 날의 기록이 없어요</p>';
+    document.getElementById('detailDay').innerHTML='';
+    document.getElementById('detailWorry').style.display='none';
+    return;
+  }
+  const emKo=T.ko.emotions[rec.emotion],emOrig=tS.emotions[rec.emotion];
+  document.getElementById('detailEmotion').innerHTML=
+    `<p class="detail-section-label">감정</p>
+    <div class="emotion-display">
+      <span class="emotion-big">${T.ko.emotionEmoji[rec.emotion]}</span>
+      <div>
+        <div class="emotion-name-main" style="color:${EMOTION_COLOR[rec.emotion]}">${showTrans?emKo:emOrig}</div>
+        <div class="emotion-name-sub">${showTrans?emOrig:emKo}</div>
+      </div>
+    </div>`;
+
+  // 번역 처리
+  let goodText=rec.good&&rec.good!=='none'?rec.good:'';
+  let detailText=rec.detail||'';
+  if(showTrans && s.lang!=='ko'){
+    // 번역본 보기: 학생 원어 → 한국어
+    if(goodText && goodText.length>2) goodText=await translateText(goodText,'ko',s.lang);
+    if(detailText) detailText=await translateText(detailText,'ko',s.lang);
+  }
+
+  let dayHTML=`<p class="detail-section-label">하루 기록</p>`;
+  if(rec.locked){dayHTML+='<p class="locked-msg">🔒 학생이 비공개로 설정했어요</p>';}
+  else{
+    if(rec.good&&rec.good!=='none')dayHTML+=`<div class="record-item good"><span class="record-item-label" style="color:#4CAF82">😊 좋았던 일</span><span style="font-size:${rec.good.length<=2?'22px':'15px'}">${showTrans?goodText:rec.good}</span></div>`;
+    if(rec.hadBad&&rec.detail)dayHTML+=`<div class="record-item bad"><span class="record-item-label" style="color:#E8705A">😢 힘들었던 일</span>${showTrans?detailText:rec.detail}</div>`;
+    if(!rec.good&&!(rec.hadBad&&rec.detail))dayHTML+='<p style="color:#8A96A3;font-size:14px;text-align:center;padding:12px 0">작성된 내용이 없어요</p>';
+  }
+  document.getElementById('detailDay').innerHTML=dayHTML;
+  const dw=document.getElementById('detailWorry');
+  if(rec.hadBad&&rec.worries?.length>0){
+    dw.style.display='block';
+    dw.innerHTML=`<p class="detail-section-label">힘들었던 것</p><div class="worry-tags">${rec.worries.map(wid=>{
+      const cKo=catsKo.find(x=>x.id===wid),cOrig=catsLang.find(x=>x.id===wid);
+      const main=showTrans?(cKo?.label||''):(cOrig?.label||''),sub=showTrans?(cOrig?.label||''):(cKo?.label||'');
+      return cKo?`<span class="worry-tag">${cKo.icon} ${main}<span style="display:block;font-size:10px;opacity:0.7">${sub}</span></span>`:'';
+    }).join('')}</div>`;
+  }else{dw.style.display='none';}
+}
+
+// ── 1:1 메시지 ──────────────────────────────────────────────
+async function showMessage(parentId){
+  await waitFb();
+  selParentId=parentId;
+  const {db,doc,getDoc,collection,query,where,orderBy,onSnapshot}=fb();
+  const paSnap=await getDoc(doc(db,'accounts',parentId));
+  const pa=paSnap.data();
+  const lInfo=LANGS.find(l=>l.code===pa.lang);
+  document.getElementById('msgTitle').textContent=pa.name;
+  document.getElementById('msgLangBadge').textContent=`${lInfo?.flag||''} ${lInfo?.label||''} ↔ 🇰🇷`;
+  // 실시간 메시지 구독
+  if(msgUnsubscribe)msgUnsubscribe();
+  const msgQ=query(collection(db,'messages'),where('parentId','==',parentId),orderBy('createdAt','asc'));
+  msgUnsubscribe=onSnapshot(msgQ,snap=>{
+    const msgs=snap.docs.map(d=>d.data());
+    renderMsgThread(msgs,pa.lang,'teacher');
+  });
+  showScreen('message');
+}
+function hideMessage(){if(msgUnsubscribe){msgUnsubscribe();msgUnsubscribe=null;}showScreen('teacher');}
+
+// ── 날짜 표시 헬퍼 ──────────────────────────────────────────────
+function formatMsgTime(m){
+  const today = new Date().toISOString().slice(0,10);
+  if(!m.date || m.date === today){
+    return m.time || '';
+  }
+  // 다른 날짜면 날짜 + 시간
+  const d = new Date(m.date);
+  return `${d.getMonth()+1}/${d.getDate()} ${m.time||''}`;
+}
+
+function renderMsgThread(msgs,targetLang,viewer){
+  const el=document.getElementById('msgThread');
+  el.innerHTML=msgs.map(m=>{
+    const isMe=viewer==='teacher'?m.from==='teacher':m.from==='parent';
+    const mainText=isMe?m.text:(m.translatedText||m.text);
+    const subText=isMe?(m.translatedText||''):m.text;
+    return `<div style="display:flex;justify-content:${isMe?'flex-end':'flex-start'};margin-bottom:12px;padding:0 8px;">
+      <div style="max-width:78%;min-width:0;">
+        <div class="chat-bubble ${isMe?'user':''}" style="${isMe?'':'background:#F0EDF9;color:#1C2B3A;border-radius:18px 18px 18px 4px;'}">
+          ${mainText}
+        </div>
+        ${subText?`<div style="font-size:11px;color:#9B8EC4;margin-top:4px;${isMe?'text-align:right':''}">🔄 ${subText}</div>`:''}
+        <div style="font-size:11px;color:#8A96A3;margin-top:2px;${isMe?'text-align:right':''}">
+          ${formatMsgTime(m)}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  el.scrollTop=99999;
+}
+
+async function sendTeacherMsg(){
+  await waitFb();
+  const inp=document.getElementById('msgInput');const text=inp.value.trim();if(!text)return;
+  inp.value='';inp.disabled=true;
+  try{
+    const {db,doc,getDoc,addDoc,collection,serverTimestamp}=fb();
+    const paSnap=await getDoc(doc(db,'accounts',selParentId));
+    const pa=paSnap.data();
+    const translated=await translateText(text,pa.lang,'ko');
+    const now=new Date();
+    const time=`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const date=now.toISOString().slice(0,10);
+    await addDoc(collection(db,'messages'),{
+      parentId:selParentId,from:'teacher',
+      text,translatedText:translated,time,date,
+      grade:curAccount.grade,cls:curAccount.cls,
+      createdAt:serverTimestamp()
+    });
+  }catch(e){alert('전송 실패: '+e.message);}
+  inp.disabled=false;
+}
+
+// ── 학부모 화면 ──────────────────────────────────────────────
+async function showParent(){
+  await waitFb();
+  loading(true,'불러오는 중...');
+  const acc=curAccount;
+  document.getElementById('parentSub').textContent=`${acc.studentName} 학생 · ${acc.grade}학년 ${acc.cls}반`;
+  try{
+    await renderParentNotices();
+    await renderParentMsgs();
+    loading(false); showScreen('parent');
+  }catch(e){loading(false);alert('오류: '+e.message);}
+}
+function parentTab(name,el){
+  document.querySelectorAll('#screen-parent .tabbar-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  document.getElementById('parentPanelNotices').style.display=name==='notices'?'block':'none';
+  document.getElementById('parentPanelMessages').style.display=name==='messages'?'block':'none';
+}
+
+async function renderParentNotices(){
+  const {db,collection,query,where,orderBy,getDocs}=fb();
+  const acc=curAccount;
+  const nQ=query(collection(db,'notices'),where('grade','==',acc.grade),where('cls','==',acc.cls),orderBy('createdAt','desc'));
+  const nSnap=await getDocs(nQ);
+  const notices=nSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const list=document.getElementById('parentNoticeList');
+  if(!notices.length){list.innerHTML='<p style="color:#8A96A3;font-size:14px">아직 공지가 없어요</p>';return;}
+  list.innerHTML='<div class="loading-text" style="color:#8A96A3;font-size:13px;margin-bottom:12px">번역 중...</div>';
+  const items=await Promise.all(notices.map(async n=>{
+    const tr=await translateText(n.body,acc.lang,'ko');
+    const trTitle=await translateText(n.title,acc.lang,'ko');
+    let trOcr='';
+    if(n.imgOcr)trOcr=await translateText(n.imgOcr,acc.lang,'ko');
+    return{n,tr,trTitle,trOcr};
+  }));
+  list.innerHTML=items.map(({n,tr,trTitle,trOcr})=>`
+    <div class="notice-card">
+      <span class="notice-translated-badge">🔄 자동 번역됨</span>
+      <p class="notice-title-text">${trTitle}</p>
+      <p class="notice-body">${tr}</p>
+      ${n.imgUrl?`<img src="${n.imgUrl}" class="notice-img" onclick="window.open('${n.imgUrl}')">`:'' }
+      ${trOcr?`<div class="ocr-result"><p class="ocr-result-title">📄 첨부 문서 내용</p><p class="ocr-result-text">${trOcr}</p></div>`:''}
+      <p class="notice-date">📅 ${n.date}</p>
+      <button class="notice-orig-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">한국어 원문 보기 ▾</button>
+      <div style="display:none;margin-top:8px;font-size:13px;color:#8A96A3;line-height:1.6">${n.body}</div>
+    </div>`
+  ).join('');
+}
+
+async function renderParentMsgs(){
+  await waitFb();
+  const {db,collection,query,where,orderBy,onSnapshot}=fb();
+  if(msgUnsubscribe)msgUnsubscribe();
+  const acc=curAccount;
+  const msgQ=query(collection(db,'messages'),where('parentId','==',curUserId),orderBy('createdAt','asc'));
+  msgUnsubscribe=onSnapshot(msgQ,snap=>{
+    const msgs=snap.docs.map(d=>d.data());
+    const el=document.getElementById('parentMsgThread');
+    el.innerHTML=msgs.map(m=>{
+      const isMe=m.from==='parent';
+      const mainText=isMe?m.text:(m.translatedText||m.text);
+      const subText=isMe?(m.translatedText||''):m.text;
+      return `<div style="display:flex;justify-content:${isMe?'flex-end':'flex-start'};margin-bottom:12px;padding:0 8px;">
+        <div style="max-width:78%;min-width:0;">
+          <div class="chat-bubble ${isMe?'user':''}" style="${isMe?'':'background:#F0EDF9;color:#1C2B3A;border-radius:18px 18px 18px 4px;'}">
+            ${mainText}
+          </div>
+          ${subText?`<div style="font-size:11px;color:#9B8EC4;margin-top:4px;${isMe?'text-align:right':''}">🔄 ${subText}</div>`:''}
+          <div style="font-size:11px;color:#8A96A3;margin-top:2px;${isMe?'text-align:right':''}">${formatMsgTime(m)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    el.scrollTop=99999;
+  });
+}
+
+async function sendParentMsg(){
+  await waitFb();
+  const inp=document.getElementById('parentMsgInput');const text=inp.value.trim();if(!text)return;
+  inp.value='';inp.disabled=true;
+  try{
+    const {db,addDoc,collection,serverTimestamp}=fb();
+    const acc=curAccount;
+    const translated=await translateText(text,'ko',acc.lang);
+    const now=new Date();
+    const time=`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const date=now.toISOString().slice(0,10);
+    await addDoc(collection(db,'messages'),{
+      parentId:curUserId,from:'parent',
+      text,translatedText:translated,time,date,
+      grade:acc.grade,cls:acc.cls,
+      createdAt:serverTimestamp()
+    });
+  }catch(e){alert('전송 실패: '+e.message);}
+  inp.disabled=false;
+}
+
+// ── 초기화 ──────────────────────────────────────────────
+applyLoginT();
+</script>
+</body>
+</html>
