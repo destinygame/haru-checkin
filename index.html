@@ -22,6 +22,7 @@ textarea { resize: none; }
 .tabbar-btn.active { color: #3AAFA9; border-bottom-color: #3AAFA9; font-weight: 800; }
 .tabbar-icon { font-size: 18px; }
 #screen-login { background: linear-gradient(160deg,#D4EDE8 0%,#EAF4F0 40%,#F7F3EE 100%); flex-direction: column; align-items: center; justify-content: center; padding: 28px; }
+#screen-login.active { display: flex; }
 #screen-register.active { display: flex; }
 .login-logo { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg,#3AAFA9,#8ECFC9); display: flex; align-items: center; justify-content: center; font-size: 42px; margin: 0 auto 18px; box-shadow: 0 12px 32px rgba(58,175,169,0.27); }
 .login-title { font-size: 26px; font-weight: 900; color: #1C2B3A; text-align: center; letter-spacing: -0.5px; }
@@ -259,7 +260,8 @@ textarea { resize: none; }
 </div>
 
 <!-- 교사 회원가입 -->
-<div id="screen-register" class="screen" style="background:linear-gradient(160deg,#D4EDE8 0%,#EAF4F0 40%,#F7F3EE 100%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px;">
+<div id="screen-register" class="screen">
+  <div style="min-height:100vh;background:linear-gradient(160deg,#D4EDE8 0%,#EAF4F0 40%,#F7F3EE 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;">
   <div style="text-align:center;margin-bottom:28px;">
     <div class="login-logo">👩‍🏫</div>
     <h1 class="login-title">교사 회원가입</h1>
@@ -278,7 +280,10 @@ textarea { resize: none; }
     </select>
     <label class="form-label">반</label>
     <select class="form-input" id="regCls" style="margin-bottom:14px;">
-      ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}">${n}반</option>`).join('')}
+      <option value="1">1반</option><option value="2">2반</option><option value="3">3반</option>
+      <option value="4">4반</option><option value="5">5반</option><option value="6">6반</option>
+      <option value="7">7반</option><option value="8">8반</option><option value="9">9반</option>
+      <option value="10">10반</option>
     </select>
     <label class="form-label">교사 이름</label>
     <input class="form-input" id="regName" placeholder="예) 김지수">
@@ -294,6 +299,7 @@ textarea { resize: none; }
     <p class="login-err" id="regErr"></p>
     <button class="btn-primary" onclick="doRegister()">회원가입</button>
     <button onclick="showScreen('login')" style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:none;color:#8A96A3;font-size:14px;cursor:pointer;">← 로그인으로 돌아가기</button>
+  </div>
   </div>
 </div>
 
@@ -1374,9 +1380,8 @@ async function sendTeacherMsg(){
   const inp=document.getElementById('msgInput');const text=inp.value.trim();if(!text)return;
   inp.value='';inp.disabled=true;
   try{
-    const {db,addDoc,collection,serverTimestamp}=fb();
-    const {db:_,doc,getDoc}=fb();
-    const paSnap=await getDoc(_.doc(db,'accounts',selParentId));
+    const {db,doc,getDoc,addDoc,collection,serverTimestamp}=fb();
+    const paSnap=await getDoc(doc(db,'accounts',selParentId));
     const pa=paSnap.data();
     const translated=await translateText(text,pa.lang,'ko');
     const now=new Date();
